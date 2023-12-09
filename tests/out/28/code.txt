@@ -1,0 +1,199 @@
+#[version = "0.0.5"]
+def @main(%pzx: Tensor[(64), float32] /* ty=Tensor[(64), float32] */, %px1: Tensor[(1), float32] /* ty=Tensor[(1), float32] */, %px2: Tensor[(10, 1), float32] /* ty=Tensor[(10, 1), float32] */) -> (Tensor[(64, 12), float32], Tensor[(64, 1, 1), float32]) {
+  %0 = add(meta[relay.Constant][1] /* ty=Tensor[(64), float32] span=from_string:3:17 */, %pzx) /* ty=Tensor[(64), float32] span=from_string:4:43 */;
+  %1 = multiply(meta[relay.Constant][0] /* ty=Tensor[(64), float32] span=from_string:4:23 */, %0) /* ty=Tensor[(64), float32] span=from_string:5:7 */;
+  %2 = add(%1, meta[relay.Constant][2] /* ty=Tensor[(64), float32] span=from_string:5:16 */) /* ty=Tensor[(64), float32] span=from_string:3:3 */;
+  %3 = nn.leaky_relu(%2, alpha=0.989105f) /* ty=Tensor[(64), float32] span=from_string:4:18 */;
+  %4 = sigmoid(%3) /* ty=Tensor[(64), float32] span=from_string:5:14 */;
+  %5 = cos(%4) /* ty=Tensor[(64), float32] span=from_string:6:14 */;
+  %6 = tan(%5) /* ty=Tensor[(64), float32] span=from_string:7:19 */;
+  %7 = negative(%6) /* ty=Tensor[(64), float32] span=from_string:8:16 */;
+  %8 = trunc(%7) /* ty=Tensor[(64), float32] span=from_string:32:25 */;
+  %9 = reshape(%8, newshape=[64, 1]) /* ty=Tensor[(64, 1), float32] span=from_string:10:14 */;
+  %10 = abs(%9) /* ty=Tensor[(64, 1), float32] span=from_string:11:14 */;
+  %11 = abs(%10) /* ty=Tensor[(64, 1), float32] span=from_string:12:14 */;
+  %12 = sin(%11) /* ty=Tensor[(64, 1), float32] span=from_string:21:19 */;
+  %13 = exp(%12) /* ty=Tensor[(64, 1), float32] span=from_string:14:15 */;
+  %14 = sum(%13, axis=[1], keepdims=True) /* ty=Tensor[(64, 1), float32] span=from_string:19:25 */;
+  %15 = sigmoid(%14) /* ty=Tensor[(64, 1), float32] span=from_string:16:28 */;
+  %16 = nn.batch_flatten(%15) /* ty=Tensor[(64, 1), float32] span=from_string:27:25 */;
+  %17 = sigmoid(%16) /* ty=Tensor[(64, 1), float32] span=from_string:18:15 */;
+  %18 = sin(%17) /* ty=Tensor[(64, 1), float32] span=from_string:19:20 */;
+  %19 = subtract(%18, %14) /* ty=Tensor[(64, 1), float32] span=from_string:25:15 */;
+  %20 = nn.relu(%12) /* ty=Tensor[(64, 1), float32] span=from_string:22:17 */;
+  %21 = round(%20) /* ty=Tensor[(64, 1), float32] span=from_string:23:17 */;
+  %22 = split(%21, indices_or_sections=[], axis=1) /* ty=(Tensor[(64, 1), float32],) span=from_string:24:11 */;
+  %23 = abs(%19) /* ty=Tensor[(64, 1), float32] span=from_string:26:23 */;
+  %24 = nn.bias_add(%23, %px1) /* ty=Tensor[(64, 1), float32] span=from_string:27:20 */;
+  %25 = subtract(%24, %16) /* ty=Tensor[(64, 1), float32] span=from_string:28:17 */;
+  %26 = nn.dense(%19, %px2, units=10) /* ty=Tensor[(64, 10), float32] span=from_string:29:24 */;
+  %27 = %22.0 /* ty=Tensor[(64, 1), float32] span=from_string:29:29 */;
+  %28 = round(%25) /* ty=Tensor[(64, 1), float32] span=from_string:29:34 */;
+  %29 = (%26, %27, %28) /* ty=(Tensor[(64, 10), float32], Tensor[(64, 1), float32], Tensor[(64, 1), float32]) span=from_string:29:23 */;
+  %30 = concatenate(%29, axis=1) /* ty=Tensor[(64, 12), float32] span=from_string:30:15 */;
+  %31 = sin(%30) /* ty=Tensor[(64, 12), float32] span=from_string:31:22 */;
+  %32 = nn.leaky_relu(%8, alpha=0.0954231f) /* ty=Tensor[(64), float32] span=from_string:33:19 */;
+  %33 = nn.softmax(%31, axis=1) /* ty=Tensor[(64, 12), float32] span=from_string:34:6 */;
+  %34 = reshape(%32, newshape=[64, 1, 1]) /* ty=Tensor[(64, 1, 1), float32] span=from_string:34:11 */;
+  (%33, %34) /* ty=(Tensor[(64, 12), float32], Tensor[(64, 1, 1), float32]) span=from_string:3:5 */
+}
+
+#[metadata]
+{
+  "root": 1, 
+  "nodes": [
+    {
+      "type_key": ""
+    }, 
+    {
+      "type_key": "Map", 
+      "keys": [
+        "relay.Constant"
+      ], 
+      "data": [2]
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [3, 11, 16]
+    }, 
+    {
+      "type_key": "relay.Constant", 
+      "attrs": {
+        "_checked_type_": "8", 
+        "data": "0", 
+        "span": "6", 
+        "virtual_device_": "4"
+      }
+    }, 
+    {
+      "type_key": "VirtualDevice", 
+      "attrs": {
+        "device_type_int": "-1", 
+        "memory_scope": "5", 
+        "target": "0", 
+        "virtual_device_id": "-1"
+      }
+    }, 
+    {
+      "type_key": "runtime.String"
+    }, 
+    {
+      "type_key": "Span", 
+      "attrs": {
+        "column": "23", 
+        "end_column": "41", 
+        "end_line": "4", 
+        "line": "4", 
+        "source_name": "7"
+      }
+    }, 
+    {
+      "type_key": "SourceName", 
+      "repr_str": "from_string"
+    }, 
+    {
+      "type_key": "relay.TensorType", 
+      "attrs": {
+        "dtype": "float32", 
+        "shape": "9", 
+        "span": "0"
+      }
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [10]
+    }, 
+    {
+      "type_key": "IntImm", 
+      "attrs": {
+        "dtype": "int32", 
+        "span": "0", 
+        "value": "64"
+      }
+    }, 
+    {
+      "type_key": "relay.Constant", 
+      "attrs": {
+        "_checked_type_": "13", 
+        "data": "1", 
+        "span": "12", 
+        "virtual_device_": "4"
+      }
+    }, 
+    {
+      "type_key": "Span", 
+      "attrs": {
+        "column": "17", 
+        "end_column": "35", 
+        "end_line": "3", 
+        "line": "3", 
+        "source_name": "7"
+      }
+    }, 
+    {
+      "type_key": "relay.TensorType", 
+      "attrs": {
+        "dtype": "float32", 
+        "shape": "14", 
+        "span": "0"
+      }
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [15]
+    }, 
+    {
+      "type_key": "IntImm", 
+      "attrs": {
+        "dtype": "int32", 
+        "span": "0", 
+        "value": "64"
+      }
+    }, 
+    {
+      "type_key": "relay.Constant", 
+      "attrs": {
+        "_checked_type_": "18", 
+        "data": "2", 
+        "span": "17", 
+        "virtual_device_": "4"
+      }
+    }, 
+    {
+      "type_key": "Span", 
+      "attrs": {
+        "column": "16", 
+        "end_column": "34", 
+        "end_line": "5", 
+        "line": "5", 
+        "source_name": "7"
+      }
+    }, 
+    {
+      "type_key": "relay.TensorType", 
+      "attrs": {
+        "dtype": "float32", 
+        "shape": "19", 
+        "span": "0"
+      }
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [20]
+    }, 
+    {
+      "type_key": "IntImm", 
+      "attrs": {
+        "dtype": "int32", 
+        "span": "0", 
+        "value": "64"
+      }
+    }
+  ], 
+  "b64ndarrays": [
+    "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAAAQAAAAIgAQBAAAAAAAAAAAABAAAAAAAArukZP7DrMz8hZxc/tisrPxfYoz31zxQ/K8tWPw1nDz+9RNw+5qFBP2YCSz4EfM4+4r+SPm5dyT7hKZc+2vUjPwJJgTtcom0/zKtbP/ZXCD/l4Dk/yZ6hPVn2nD74kUQ+xd6vPkVb+j7HvAo+e2CcPrXtej/h9e8+rIswPxolFj8DVEs/9rUeP9fpQz42IlI+114wPtx68z5N0cw+6Ts9P8OyGD/W2CU/vwqKPijNBz8Ns04+rhGpPi+8Kj30lZA+F9k6P1oXSj+AzYo+zRCNPReYgjwjoVc/+m6IPoMYRj+IjRc+c5jlPVhpkz4S5KI82EROPvDn/z62GDY/BRzCPQ==", 
+    "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAAAQAAAAIgAQBAAAAAAAAAAAABAAAAAAAAykikPrfLnz1FD4k90d+qPvGw/jzlKNg8Az5XPmUSJD8lEGY/sFsDP1KQbT9Jw3w/dtv9PgUsnD1D2nw/2Ps8PTHIVT8dvxY/IkuPPrBd8D7I4WM/vH95PkqGpz1/8LE+BGonPx0xXD9Kjvk+NjJCP6Y+4T2h9yE/8e8vPuyheD9Vwl0+pbanPkYIvTyqMb0+udTLPgLLLD/4XQU+Vg3APRVJsT04/sc+tb1sP/RGCD8yCg8/jPRgPz7fzT7jhlQ/ptq7Pt2VTz5XJXk+YtURP7qZ+j4I8DE/VHpPP0rhaj4x7B0/ywQPPzSh2z5V9sc+ufYkPuW29z2wQ649FDqePg==", 
+    "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAAAQAAAAIgAQBAAAAAAAAAAAABAAAAAAAA4aZQP/E9cD7nFgU/P6NrP5WOWj82yU0/huZkP9aVyz6r6dc+8D4qP9/wHz+ACHA/9o50PsaKxj7ixNw7POhxPeZJYD5wTtA+A1ZuP0dfAj+anMM9RuylPgc+sT5jWqU+dOB6P1Z97D5LmKE+XcHnPch0vz6lItE9/h9OPyAJGD8/xQ4+zTetPb/QWj+Ek2o+NoI8Py5DVz9sxVI/kcl3PtLZJT/UFRg/KwdhP0wqNj5n5GA/ZoXlPletOD+mMjs/583aPr2gLT2KEak+SlOfPqGsQz/cDU4/VgOhPlAEIj/E04A+W+sNPzNR9T7swl8/67o/P8DPxj5tSME923RWPw=="
+  ], 
+  "attrs": {"tvm_version": "0.12.dev0"}
+}

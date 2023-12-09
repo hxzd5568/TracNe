@@ -1,0 +1,13 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(13, 13), float16] /* ty=Tensor[(13, 13), float16] span=from_string:3:28 */, %x1: Tensor[(26), float16] /* ty=Tensor[(26), float16] span=from_string:9:28 */, %x2: Tensor[(26), float16] /* ty=Tensor[(26), float16] span=from_string:9:33 */) -> (Tensor[(13), float16],) {
+  %0 = (%x0, %x0) /* ty=(Tensor[(13, 13), float16], Tensor[(13, 13), float16]) span=from_string:3:22 */;
+  %1 = concatenate(%0, axis=1) /* ty=Tensor[(13, 26), float16] span=from_string:6:18 */;
+  %2 = nn.relu(%1) /* ty=Tensor[(13, 26), float16] span=from_string:5:19 */;
+  %3 = negative(%2) /* ty=Tensor[(13, 26), float16] span=from_string:6:14 */;
+  %4 = add(%3, %1) /* ty=Tensor[(13, 26), float16] span=from_string:7:27 */;
+  %5 = nn.batch_flatten(%4) /* ty=Tensor[(13, 26), float16] span=from_string:8:21 */;
+  %6 = nn.softmax(%5, axis=1) /* ty=Tensor[(13, 26), float16] span=from_string:9:24 */;
+  %7 = nn.layer_norm(%6, %x1, %x2, axis=1) /* ty=Tensor[(13, 26), float16] span=from_string:10:15 */;
+  %8 = min(%7, axis=[1]) /* ty=Tensor[(13), float16] span=from_string:11:6 */;
+  (%8,) /* ty=(Tensor[(13), float16],) span=from_string:3:5 */
+}

@@ -1,0 +1,6 @@
+tvmgen_default_fused_subtract_add_rsqrt_multiply,0.00024971078292264766
+,-1
+tvmgen_default_fused_nn_contrib_dense_pack_1,0.007106234940652063
+tvmgen_default_fused_tan,0.007098868411686961
+tvmgen_default_fused_tan_1,0.007091216105387567
+tvmgen_default_fused_maximum_minimum_abs_abs_add,0.007095086307271161

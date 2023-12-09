@@ -1,0 +1,12 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(17, 19), float16] /* ty=Tensor[(17, 19), float16] span=from_string:3:24 */, %x1: Tensor[(19), float16] /* ty=Tensor[(19), float16] span=from_string:4:28 */, %x2: Tensor[(19), float16] /* ty=Tensor[(19), float16] span=from_string:4:33 */, %x3: Tensor[(19), float16] /* ty=Tensor[(19), float16] span=from_string:6:28 */, %x4: Tensor[(19), float16] /* ty=Tensor[(19), float16] span=from_string:6:33 */, %x5: Tensor[(19), float16] /* ty=Tensor[(19), float16] span=from_string:10:28 */, %x6: Tensor[(19), float16] /* ty=Tensor[(19), float16] span=from_string:10:33 */) -> (Tensor[(17, 19), float16],) {
+  %0 = subtract(%x0, %x0) /* ty=Tensor[(17, 19), float16] span=from_string:4:24 */;
+  %1 = nn.group_norm(%0, %x1, %x2, num_groups=19, center=False) /* ty=Tensor[(17, 19), float16] span=from_string:5:27 */;
+  %2 = nn.batch_flatten(%1) /* ty=Tensor[(17, 19), float16] span=from_string:6:24 */;
+  %3 = nn.layer_norm(%2, %x3, %x4, axis=1) /* ty=Tensor[(17, 19), float16] span=from_string:7:20 */;
+  %4 = transpose(%3, axes=[0, 1]) /* ty=Tensor[(17, 19), float16] span=from_string:8:14 */;
+  %5 = sin(%4) /* ty=Tensor[(17, 19), float16] span=from_string:9:15 */;
+  %6 = tanh(%5) /* ty=Tensor[(17, 19), float16] span=from_string:10:24 */;
+  %7 = nn.layer_norm(%6, %x5, %x6, axis=1, center=False, scale=False) /* ty=Tensor[(17, 19), float16] span=from_string:11:6 */;
+  (%7,) /* ty=(Tensor[(17, 19), float16],) span=from_string:3:5 */
+}

@@ -1,0 +1,2 @@
+tvmgen_default_fused_nn_fast_softmax,3.23240967324367e-08
+tvmgen_default_fused_split,6.46481934648734e-08

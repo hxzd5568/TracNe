@@ -1,0 +1,2 @@
+tvmgen_default_fused_fast_exp,2.2849558727179983e-08
+tvmgen_default_fused_mean_1_1,2.2849558727179983e-08

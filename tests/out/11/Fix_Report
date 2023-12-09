@@ -1,0 +1,40 @@
+Fixed
+
+
+**************************************************
+fixed method: Targeted repair
+
+
+**************************************************
+After repairing, error prone input's mean relatively error is: 0.0000000193
+
+
+**************************************************
+After repairing, mean relatively error is: 0.0000000000
+
+
+**************************************************
+The best recommendation:
+
+#[version = "0.0.5"]
+def @main(%x: Tensor[(256, 2, 1), float32] /* ty=Tensor[(256, 2, 1), float32] span=from_string:10:6 */, hash="4e252722a2da0b1a") -> Tensor[(256, 2, 1), float32] {
+  %0 = cast(%x, dtype="float64") /* ty=Tensor[(256, 2, 1), float64] span=from_string:6:14 */;
+  %1 = cast(2.5f /* ty=float32 span=from_string:5:17 */, dtype="float64") /* ty=float64 span=from_string:7:18 */;
+  %2 = rsqrt(%0) /* ty=Tensor[(256, 2, 1), float64] span=from_string:7:22 */;
+  %3 = multiply(%1, %2) /* ty=Tensor[(256, 2, 1), float64] span=from_string:8:8 */;
+  cast(%3, dtype="float32") /* ty=Tensor[(256, 2, 1), float32] span=from_string:4:3 */
+}
+
+
+
+**************************************************
+The repair subgraph:
+
+#[version = "0.0.5"]
+def @main(%p0: Tensor[(256, 2, 1), float32] /* ty=Tensor[(256, 2, 1), float32] span=from_string:3:13 */) -> Tensor[(256, 2, 1), float32] {
+  %0 = cast(%p0, dtype="float64") /* ty=Tensor[(256, 2, 1), float64] span=from_string:5:14 */;
+  %1 = cast(2.5f /* ty=float32 span=from_string:4:17 */, dtype="float64") /* ty=float64 span=from_string:6:18 */;
+  %2 = rsqrt(%0) /* ty=Tensor[(256, 2, 1), float64] span=from_string:6:22 */;
+  %3 = multiply(%1, %2) /* ty=Tensor[(256, 2, 1), float64] span=from_string:7:8 */;
+  cast(%3, dtype="float32") /* ty=Tensor[(256, 2, 1), float32] span=from_string:3:3 */
+}

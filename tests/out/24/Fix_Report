@@ -1,0 +1,241 @@
+Fixed
+
+
+**************************************************
+fixed method: Targeted repair
+
+
+**************************************************
+After repairing, error prone input's mean relatively error is: 0.0000000769
+
+
+**************************************************
+After repairing, mean relatively error is: 0.0000000000
+
+
+**************************************************
+The best recommendation:
+
+#[version = "0.0.5"]
+def @main(%pzx: Tensor[(64, 4), float32] /* ty=Tensor[(64, 4), float32] span=from_string:18:13 */, %pzweight: Tensor[(3, 4), float32] /* ty=Tensor[(3, 4), float32] span=from_string:10:13 */, %pzin_bias: Tensor[(3), float32] /* ty=Tensor[(3), float32] span=from_string:18:24 */, %px1: Tensor[(1), float32] /* ty=Tensor[(1), float32] */, %px2: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:32:30 */, %px3: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:32:24 */, %px4: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:32:13 */, %px5: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:81:28 */, %px6: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:81:34 */, %px7: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:81:52 */, %px8: Tensor[(1), float32] /* ty=Tensor[(1), float32] */, %px9: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:81:58 */, %px10: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:81:45 */, hash="3ec6808cfa82087c") -> (Tensor[(64, 1), float32],) {
+  %0 = cast(%pzweight, dtype="float64") /* ty=Tensor[(3, 4), float64] span=from_string:6:19 */;
+  %1 = cast(meta[relay.Constant][0] /* ty=Tensor[(3, 1), float32] span=from_string:10:29 */, dtype="float64") /* ty=Tensor[(3, 1), float64] span=from_string:6:24 */;
+  %2 = multiply(%0, %1) /* ty=Tensor[(3, 4), float64] span=from_string:7:26 */;
+  %3 = layout_transform(%2, src_layout="NC", dst_layout="NC3n") /* ty=Tensor[(1, 4, 3), float64] span=from_string:8:8 */;
+  %4 = cast(%3, dtype="float32") /* ty=Tensor[(1, 4, 3), float32] span=from_string:4:3 */;
+  %5 = multiply(%pzin_bias, meta[relay.Constant][1] /* ty=Tensor[(3), float32] span=from_string:18:41 */) /* ty=Tensor[(3), float32] span=from_string:14:23 */;
+  %6 = nn.contrib_dense_pack(%pzx, %4, meta[relay.attrs.DensePackAttrs][0]) /* ty=Tensor[(64, 3), float32] span=from_string:15:15 */;
+  %7 = expand_dims(%5, axis=0) /* ty=Tensor[(1, 3), float32] span=from_string:15:20 */;
+  %8 = add(%6, %7) /* ty=Tensor[(64, 3), float32] span=from_string:16:13 */;
+  %9 = nn.relu(%8) /* ty=Tensor[(64, 3), float32] span=from_string:12:5 */;
+  %10 = add(%px4, 1e-05f /* ty=float32 span=from_string:24:27 */) /* ty=Tensor[(1), float32] span=from_string:25:17 */;
+  %11 = sum(%9, axis=[1], keepdims=True) /* ty=Tensor[(64, 1), float32] span=from_string:20:5 */;
+  %12 = rsqrt(%10) /* ty=Tensor[(1), float32] span=from_string:28:27 */;
+  %13 = negative(%px3) /* ty=Tensor[(1), float32] span=from_string:27:21 */;
+  %14 = multiply(%13, %12) /* ty=Tensor[(1), float32] span=from_string:29:15 */;
+  %15 = multiply(%11, %12) /* ty=Tensor[(64, 1), float32] span=from_string:30:9 */;
+  %16 = add(%14, %px2) /* ty=Tensor[(1), float32] span=from_string:30:14 */;
+  %17 = add(%15, %16) /* ty=Tensor[(64, 1), float32] span=from_string:24:5 */;
+  %18 = max(%17, axis=[1], keepdims=True) /* ty=Tensor[(64, 1), float32] span=from_string:34:6 */;
+  %19 = nn.leaky_relu(%18, alpha=0.73123f) /* ty=Tensor[(64, 1), float32] span=from_string:39:16 */;
+  %20 = ceil(%19) /* ty=Tensor[(64, 1), float32] span=from_string:40:9 */;
+  %21 = abs(%20) /* ty=Tensor[(64, 1), float32] span=from_string:38:5 */;
+  %22 = floor(%21) /* ty=Tensor[(64, 1), float32] span=from_string:45:26 */;
+  %23 = subtract(%17, %22) /* ty=Tensor[(64, 1), float32] span=from_string:46:14 */;
+  %24 = negative(%23) /* ty=Tensor[(64, 1), float32] span=from_string:44:5 */;
+  %25 = mean(%24, axis=[1], keepdims=True) /* ty=Tensor[(64, 1), float32] span=from_string:50:7 */;
+  %26 = variance(%24, %25, axis=[1], keepdims=True) /* ty=Tensor[(64, 1), float32] span=from_string:54:5 */;
+  %27 = add(%26, 1e-05f /* ty=float32 span=from_string:58:25 */) /* ty=Tensor[(64, 1), float32] span=from_string:60:16 */;
+  %28 = subtract(%24, %25) /* ty=Tensor[(64, 1), float32] span=from_string:61:20 */;
+  %29 = rsqrt(%27) /* ty=Tensor[(64, 1), float32] span=from_string:61:24 */;
+  %30 = multiply(%28, %29) /* ty=Tensor[(64, 1), float32] span=from_string:62:20 */;
+  %31 = multiply(%30, %px5) /* ty=Tensor[(64, 1), float32] span=from_string:63:14 */;
+  %32 = add(%31, %px6) /* ty=Tensor[(64, 1), float32] span=from_string:66:19 */;
+  %33 = add(%px10, 1e-05f /* ty=float32 span=from_string:64:25 */) /* ty=Tensor[(1), float32] span=from_string:65:16 */;
+  %34 = rsqrt(%33) /* ty=Tensor[(1), float32] span=from_string:67:20 */;
+  %35 = subtract(%32, %21) /* ty=Tensor[(64, 1), float32] span=from_string:69:21 */;
+  %36 = multiply(%34, %px7) /* ty=Tensor[(1), float32] span=from_string:70:26 */;
+  %37 = negative(%px9) /* ty=Tensor[(1), float32] span=from_string:70:21 */;
+  %38 = multiply(%35, %36) /* ty=Tensor[(64, 1), float32] span=from_string:71:15 */;
+  %39 = multiply(%37, %36) /* ty=Tensor[(1), float32] span=from_string:71:20 */;
+  %40 = add(%38, %39) /* ty=Tensor[(64, 1), float32] span=from_string:72:15 */;
+  %41 = sin(%40) /* ty=Tensor[(64, 1), float32] span=from_string:74:26 */;
+  %42 = sin(%41) /* ty=Tensor[(64, 1), float32] span=from_string:74:21 */;
+  %43 = multiply(%42, %41) /* ty=Tensor[(64, 1), float32] span=from_string:75:28 */;
+  %44 = nn.batch_flatten(%43) /* ty=Tensor[(64, 1), float32] span=from_string:76:23 */;
+  %45 = divide(%11, %44) /* ty=Tensor[(64, 1), float32] span=from_string:77:17 */;
+  %46 = floor(%45) /* ty=Tensor[(64, 1), float32] span=from_string:78:21 */;
+  %47 = fast_tanh(%46) /* ty=Tensor[(64, 1), float32] span=from_string:79:9 */;
+  %48 = abs(%47) /* ty=Tensor[(64, 1), float32] span=from_string:58:5 */;
+  (%48,) /* ty=(Tensor[(64, 1), float32],) span=from_string:3:3 */
+}
+
+#[metadata]
+{
+  "root": 1, 
+  "nodes": [
+    {
+      "type_key": ""
+    }, 
+    {
+      "type_key": "Map", 
+      "keys": [
+        "relay.attrs.DensePackAttrs", 
+        "relay.Constant"
+      ], 
+      "data": [2, 5]
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [3]
+    }, 
+    {
+      "type_key": "relay.attrs.DensePackAttrs", 
+      "attrs": {
+        "out_dtype": "float32", 
+        "units": "0", 
+        "weight_layout": "4"
+      }
+    }, 
+    {
+      "type_key": "runtime.String", 
+      "repr_str": "NC3n"
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [6, 15]
+    }, 
+    {
+      "type_key": "relay.Constant", 
+      "attrs": {
+        "_checked_type_": "11", 
+        "data": "0", 
+        "span": "9", 
+        "virtual_device_": "7"
+      }
+    }, 
+    {
+      "type_key": "VirtualDevice", 
+      "attrs": {
+        "device_type_int": "-1", 
+        "memory_scope": "8", 
+        "target": "0", 
+        "virtual_device_id": "-1"
+      }
+    }, 
+    {
+      "type_key": "runtime.String"
+    }, 
+    {
+      "type_key": "Span", 
+      "attrs": {
+        "column": "29", 
+        "end_column": "47", 
+        "end_line": "10", 
+        "line": "10", 
+        "source_name": "10"
+      }
+    }, 
+    {
+      "type_key": "SourceName", 
+      "repr_str": "from_string"
+    }, 
+    {
+      "type_key": "relay.TensorType", 
+      "attrs": {
+        "dtype": "float32", 
+        "shape": "12", 
+        "span": "0"
+      }
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [13, 14]
+    }, 
+    {
+      "type_key": "IntImm", 
+      "attrs": {
+        "dtype": "int32", 
+        "span": "0", 
+        "value": "3"
+      }
+    }, 
+    {
+      "type_key": "IntImm", 
+      "attrs": {
+        "dtype": "int32", 
+        "span": "0", 
+        "value": "1"
+      }
+    }, 
+    {
+      "type_key": "relay.Constant", 
+      "attrs": {
+        "_checked_type_": "19", 
+        "data": "1", 
+        "span": "18", 
+        "virtual_device_": "16"
+      }
+    }, 
+    {
+      "type_key": "VirtualDevice", 
+      "attrs": {
+        "device_type_int": "-1", 
+        "memory_scope": "17", 
+        "target": "0", 
+        "virtual_device_id": "-1"
+      }
+    }, 
+    {
+      "type_key": "runtime.String"
+    }, 
+    {
+      "type_key": "Span", 
+      "attrs": {
+        "column": "41", 
+        "end_column": "59", 
+        "end_line": "18", 
+        "line": "18", 
+        "source_name": "10"
+      }
+    }, 
+    {
+      "type_key": "relay.TensorType", 
+      "attrs": {
+        "dtype": "float32", 
+        "shape": "20", 
+        "span": "0"
+      }
+    }, 
+    {
+      "type_key": "Array", 
+      "data": [21]
+    }, 
+    {
+      "type_key": "IntImm", 
+      "attrs": {
+        "dtype": "int32", 
+        "span": "0", 
+        "value": "3"
+      }
+    }
+  ], 
+  "b64ndarrays": [
+    "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAAAgAAAAIgAQADAAAAAAAAAAEAAAAAAAAADAAAAAAAAADOwDs/O7QtPwEPST8=", 
+    "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAAAQAAAAIgAQADAAAAAAAAAAwAAAAAAAAAzsA7Pzu0LT8BD0k/"
+  ], 
+  "attrs": {"tvm_version": "0.12.dev0"}
+}
+
+
+**************************************************
+The repair subgraph:
+
+#[version = "0.0.5"]
+def @main(%p07: Tensor[(3, 4), float32] /* ty=Tensor[(3, 4), float32] span=from_string:3:13 */, %p14: Tensor[(3, 1), float32] /* ty=Tensor[(3, 1), float32] span=from_string:4:13 */) -> Tensor[(1, 4, 3), float32] {
+  %0 = cast(%p07, dtype="float64") /* ty=Tensor[(3, 4), float64] span=from_string:5:18 */;
+  %1 = cast(%p14, dtype="float64") /* ty=Tensor[(3, 1), float64] span=from_string:5:22 */;
+  %2 = multiply(%0, %1) /* ty=Tensor[(3, 4), float64] span=from_string:6:25 */;
+  %3 = layout_transform(%2, src_layout="NC", dst_layout="NC3n") /* ty=Tensor[(1, 4, 3), float64] span=from_string:7:8 */;
+  cast(%3, dtype="float32") /* ty=Tensor[(1, 4, 3), float32] span=from_string:3:3 */
+}

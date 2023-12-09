@@ -1,0 +1,19 @@
+#[version = "0.0.5"]
+def @main(%pzdata: Tensor[(2, 3, 64, 16), float32] /* ty=Tensor[(2, 3, 64, 16), float32] */, %pzgraph_conv_weight: Tensor[(3, 3, 3, 3), float32] /* ty=Tensor[(3, 3, 3, 3), float32] */, %pzgraph_bn_gamma: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %pzgraph_bn_beta: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %pzgraph_bn_moving_mean: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %pzgraph_bn_moving_var: Tensor[(3), float32] /* ty=Tensor[(3), float32] */) -> (Tensor[(2), float32],) {
+  %0 = nn.conv2d(%pzdata, %pzgraph_conv_weight, strides=[2, 2], padding=[1, 1, 1, 1], channels=3, kernel_size=[3, 3]) /* ty=Tensor[(2, 3, 32, 8), float32] span=from_string:4:22 */;
+  %1 = nn.batch_norm(%0, %pzgraph_bn_gamma, %pzgraph_bn_beta, %pzgraph_bn_moving_mean, %pzgraph_bn_moving_var) /* ty=(Tensor[(2, 3, 32, 8), float32], Tensor[(3), float32], Tensor[(3), float32]) span=from_string:5:8 */;
+  %2 = %1.0 /* ty=Tensor[(2, 3, 32, 8), float32] span=from_string:6:16 */;
+  %3 = nn.relu(%2) /* ty=Tensor[(2, 3, 32, 8), float32] span=from_string:7:7 */;
+  %4 = sum(%3, axis=[-1, -2]) /* ty=Tensor[(2, 3), float32] span=from_string:3:3 */;
+  %5 = minimum(%4, %4) /* ty=Tensor[(2, 3), float32] span=from_string:5:14 */;
+  %6 = sin(%5) /* ty=Tensor[(2, 3), float32] span=from_string:6:23 */;
+  %7 = transpose(%5, axes=[0, 1]) /* ty=Tensor[(2, 3), float32] span=from_string:8:23 */;
+  %8 = maximum(%6, %6) /* ty=Tensor[(2, 3), float32] span=from_string:7:23 */;
+  %9 = minimum(%7, %8) /* ty=Tensor[(2, 3), float32] span=from_string:8:19 */;
+  %10 = minimum(%9, %7) /* ty=Tensor[(2, 3), float32] span=from_string:9:14 */;
+  %11 = sum(%10, axis=[1]) /* ty=Tensor[(2), float32] span=from_string:10:18 */;
+  %12 = nn.relu(%11) /* ty=Tensor[(2), float32] span=from_string:11:14 */;
+  %13 = tan(%12) /* ty=Tensor[(2), float32] span=from_string:12:14 */;
+  %14 = abs(%13) /* ty=Tensor[(2), float32] span=from_string:13:6 */;
+  (%14,) /* ty=(Tensor[(2), float32],) span=from_string:3:5 */
+}

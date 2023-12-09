@@ -1,0 +1,12 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(14, 15), float16] /* ty=Tensor[(14, 15), float16] span=from_string:3:24 */, %x1: Tensor[(15), float16] /* ty=Tensor[(15), float16] span=from_string:7:26 */, %x2: Tensor[(15), float16] /* ty=Tensor[(15), float16] span=from_string:8:28 */, %x3: Tensor[(15), float16] /* ty=Tensor[(15), float16] span=from_string:8:33 */) -> (Tensor[(14, 15), float16],) {
+  %0 = minimum(%x0, %x0) /* ty=Tensor[(14, 15), float16] span=from_string:4:16 */;
+  %1 = round(%0) /* ty=Tensor[(14, 15), float16] span=from_string:9:23 */;
+  %2 = negative(%1) /* ty=Tensor[(14, 15), float16] span=from_string:6:18 */;
+  %3 = sigmoid(%2) /* ty=Tensor[(14, 15), float16] span=from_string:7:22 */;
+  %4 = nn.bias_add(%3, %x1) /* ty=Tensor[(14, 15), float16] span=from_string:8:24 */;
+  %5 = nn.layer_norm(%4, %x2, %x3, axis=1) /* ty=Tensor[(14, 15), float16] span=from_string:9:19 */;
+  %6 = minimum(%5, %1) /* ty=Tensor[(14, 15), float16] span=from_string:10:18 */;
+  %7 = nn.relu(%6) /* ty=Tensor[(14, 15), float16] span=from_string:11:6 */;
+  (%7,) /* ty=(Tensor[(14, 15), float16],) span=from_string:3:5 */
+}

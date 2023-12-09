@@ -1,0 +1,1 @@
+tvmgen_default_fused_subtract_add_rsqrt_multiply_reshape_multiply_add,0.019520381897098534

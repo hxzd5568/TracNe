@@ -1,0 +1,58 @@
+Fixed
+
+
+**************************************************
+fixed method: Targeted repair
+
+
+**************************************************
+After repairing, error prone input's mean relatively error is: 0.0000003310
+
+
+**************************************************
+After repairing, mean relatively error is: 0.0000000000
+
+
+**************************************************
+The best recommendation:
+
+#[version = "0.0.5"]
+def @main(%pzx: Tensor[(64, 2, 1), float32] /* ty=Tensor[(64, 2, 1), float32] span=from_string:17:13 */, hash="0bfcb0f06a37806c") -> (Tensor[(64, 2, 1), float32],) {
+  %0 = cast(%pzx, dtype="float64") /* ty=Tensor[(64, 2, 1), float64] span=from_string:6:14 */;
+  %1 = cast(2.5f /* ty=float32 span=from_string:5:17 */, dtype="float64") /* ty=float64 span=from_string:7:18 */;
+  %2 = rsqrt(%0) /* ty=Tensor[(64, 2, 1), float64] span=from_string:7:22 */;
+  %3 = multiply(%1, %2) /* ty=Tensor[(64, 2, 1), float64] span=from_string:8:12 */;
+  %4 = cos(%3) /* ty=Tensor[(64, 2, 1), float64] span=from_string:10:22 */;
+  %5 = nn.relu(%4) /* ty=Tensor[(64, 2, 1), float64] span=from_string:13:22 */;
+  %6 = multiply(%5, %4) /* ty=Tensor[(64, 2, 1), float64] span=from_string:11:14 */;
+  %7 = floor(%6) /* ty=Tensor[(64, 2, 1), float64] span=from_string:12:12 */;
+  %8 = tan(%7) /* ty=Tensor[(64, 2, 1), float64] span=from_string:13:18 */;
+  %9 = maximum(%8, %5) /* ty=Tensor[(64, 2, 1), float64] span=from_string:14:23 */;
+  %10 = strided_slice(%9, begin=[0], end=[1], strides=[2], axes=[2]) /* ty=Tensor[(64, 2, 1), float64] span=from_string:15:8 */;
+  %11 = cast(%10, dtype="float32") /* ty=Tensor[(64, 2, 1), float32] span=from_string:4:3 */;
+  %12 = nn.fast_softmax(%11, axis=1) /* ty=Tensor[(64, 2, 1), float32] span=from_string:20:13 */;
+  %13 = nn.relu(%12) /* ty=Tensor[(64, 2, 1), float32] span=from_string:19:5 */;
+  %14 = nn.avg_pool1d(%13, pool_size=[3], dilation=[2], padding=[2, 2]) /* ty=Tensor[(64, 2, 1), float32] span=from_string:24:5 */;
+  (%14,) /* ty=(Tensor[(64, 2, 1), float32],) span=from_string:3:3 */
+}
+
+
+
+**************************************************
+The repair subgraph:
+
+#[version = "0.0.5"]
+def @main(%p02: Tensor[(64, 2, 1), float32] /* ty=Tensor[(64, 2, 1), float32] span=from_string:3:13 */) -> Tensor[(64, 2, 1), float32] {
+  %0 = cast(%p02, dtype="float64") /* ty=Tensor[(64, 2, 1), float64] span=from_string:5:14 */;
+  %1 = cast(2.5f /* ty=float32 span=from_string:4:17 */, dtype="float64") /* ty=float64 span=from_string:6:18 */;
+  %2 = rsqrt(%0) /* ty=Tensor[(64, 2, 1), float64] span=from_string:6:22 */;
+  %3 = multiply(%1, %2) /* ty=Tensor[(64, 2, 1), float64] span=from_string:7:12 */;
+  %4 = cos(%3) /* ty=Tensor[(64, 2, 1), float64] span=from_string:9:22 */;
+  %5 = nn.relu(%4) /* ty=Tensor[(64, 2, 1), float64] span=from_string:12:21 */;
+  %6 = multiply(%5, %4) /* ty=Tensor[(64, 2, 1), float64] span=from_string:10:14 */;
+  %7 = floor(%6) /* ty=Tensor[(64, 2, 1), float64] span=from_string:11:12 */;
+  %8 = tan(%7) /* ty=Tensor[(64, 2, 1), float64] span=from_string:12:17 */;
+  %9 = maximum(%8, %5) /* ty=Tensor[(64, 2, 1), float64] span=from_string:13:23 */;
+  %10 = strided_slice(%9, begin=[0], end=[1], strides=[2], axes=[2]) /* ty=Tensor[(64, 2, 1), float64] span=from_string:14:8 */;
+  cast(%10, dtype="float32") /* ty=Tensor[(64, 2, 1), float32] span=from_string:3:3 */
+}

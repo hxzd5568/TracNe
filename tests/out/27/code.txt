@@ -1,0 +1,40 @@
+#[version = "0.0.5"]
+def @main(%pzdata: Tensor[(2, 3, 64, 16), float32] /* ty=Tensor[(2, 3, 64, 16), float32] */, %pzgraph_conv_weight: Tensor[(3, 3, 3, 3), float32] /* ty=Tensor[(3, 3, 3, 3), float32] */, %pzgraph_bn_gamma: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %pzgraph_bn_beta: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %pzgraph_bn_moving_mean: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %pzgraph_bn_moving_var: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %px1: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %px2: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %px3: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %px4: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %px5: Tensor[(3), float32] /* ty=Tensor[(3), float32] */, %px6: Tensor[(2), float32] /* ty=Tensor[(2), float32] */, %px7: Tensor[(2), float32] /* ty=Tensor[(2), float32] */, %px8: Tensor[(2), float32] /* ty=Tensor[(2), float32] */, %px9: Tensor[(2), float32] /* ty=Tensor[(2), float32] */) -> (Tensor[(2, 3, 8), float32], Tensor[(2, 2, 2), float32]) {
+  %0 = nn.conv2d(%pzdata, %pzgraph_conv_weight, strides=[2, 2], padding=[1, 1, 1, 1], channels=3, kernel_size=[3, 3]) /* ty=Tensor[(2, 3, 32, 8), float32] span=from_string:4:22 */;
+  %1 = nn.batch_norm(%0, %pzgraph_bn_gamma, %pzgraph_bn_beta, %pzgraph_bn_moving_mean, %pzgraph_bn_moving_var) /* ty=(Tensor[(2, 3, 32, 8), float32], Tensor[(3), float32], Tensor[(3), float32]) span=from_string:5:8 */;
+  %2 = %1.0 /* ty=Tensor[(2, 3, 32, 8), float32] span=from_string:6:16 */;
+  %3 = nn.relu(%2) /* ty=Tensor[(2, 3, 32, 8), float32] span=from_string:7:7 */;
+  %4 = sum(%3, axis=[-1]) /* ty=Tensor[(2, 3, 32), float32] span=from_string:3:3 */;
+  %5 = expand_dims(%4, axis=2, num_newaxis=0) /* ty=Tensor[(2, 3, 32), float32] span=from_string:11:19 */;
+  %6 = nn.instance_norm(%5, %px1, %px2, center=False) /* ty=Tensor[(2, 3, 32), float32] span=from_string:5:16 */;
+  %7 = round(%6) /* ty=Tensor[(2, 3, 32), float32] span=from_string:6:24 */;
+  %8 = nn.avg_pool1d(%7, pool_size=[3], strides=[2], padding=[0, 1], ceil_mode=True, count_include_pad=True) /* ty=Tensor[(2, 3, 16), float32] span=from_string:7:24 */;
+  %9 = strided_slice(%8, begin=[1], end=[16], strides=[2], axes=[2]) /* ty=Tensor[(2, 3, 8), float32] span=from_string:8:23 */;
+  %10 = minimum(%9, %9) /* ty=Tensor[(2, 3, 8), float32] span=from_string:14:15 */;
+  %11 = floor(%10) /* ty=Tensor[(2, 3, 8), float32] span=from_string:10:24 */;
+  %12 = nn.prelu(%5, %px3) /* ty=Tensor[(2, 3, 32), float32] span=from_string:12:14 */;
+  %13 = sin(%12) /* ty=Tensor[(2, 3, 32), float32] span=from_string:13:15 */;
+  %14 = exp(%10) /* ty=Tensor[(2, 3, 8), float32] span=from_string:15:15 */;
+  %15 = sum(%14, axis=[1], keepdims=True) /* ty=Tensor[(2, 1, 8), float32] span=from_string:16:19 */;
+  %16 = sigmoid(%15) /* ty=Tensor[(2, 1, 8), float32] span=from_string:17:15 */;
+  %17 = sum(%16, axis=[2], keepdims=True) /* ty=Tensor[(2, 1, 1), float32] span=from_string:28:25 */;
+  %18 = round(%17) /* ty=Tensor[(2, 1, 1), float32] span=from_string:24:17 */;
+  %19 = nn.adaptive_max_pool1d(%18, output_size=[1]) /* ty=Tensor[(2, 1, 1), float32] span=from_string:25:24 */;
+  %20 = sum(%13, axis=[1, 2], keepdims=True) /* ty=Tensor[(2, 1, 1), float32] span=from_string:21:20 */;
+  %21 = reshape(%19, newshape=[2, 1]) /* ty=Tensor[(2, 1), float32] span=from_string:21:25 */;
+  %22 = minimum(%20, %21) /* ty=Tensor[(2, 2, 1), float32] span=from_string:22:25 */;
+  %23 = maximum(%22, %22) /* ty=Tensor[(2, 2, 1), float32] span=from_string:23:16 */;
+  %24 = floor(%18) /* ty=Tensor[(2, 1, 1), float32] span=from_string:25:29 */;
+  %25 = (%19, %24) /* ty=(Tensor[(2, 1, 1), float32], Tensor[(2, 1, 1), float32]) span=from_string:25:23 */;
+  %26 = concatenate(%25, axis=1) /* ty=Tensor[(2, 2, 1), float32] span=from_string:26:15 */;
+  %27 = tanh(%23) /* ty=Tensor[(2, 2, 1), float32] span=from_string:27:21 */;
+  %28 = sum(%26, axis=[2]) /* ty=Tensor[(2, 2), float32] span=from_string:27:26 */;
+  %29 = multiply(%27, %28) /* ty=Tensor[(2, 2, 2), float32] span=from_string:28:20 */;
+  %30 = maximum(%29, %17) /* ty=Tensor[(2, 2, 2), float32] span=from_string:29:25 */;
+  %31 = nn.layer_norm(%30, %px6, %px7, axis=1, scale=False) /* ty=Tensor[(2, 2, 2), float32] span=from_string:30:30 */;
+  %32 = nn.instance_norm(%31, %px8, %px9, center=False, scale=False) /* ty=Tensor[(2, 2, 2), float32] span=from_string:31:15 */;
+  %33 = exp(%32) /* ty=Tensor[(2, 2, 2), float32] span=from_string:32:15 */;
+  %34 = nn.layer_norm(%11, %px4, %px5, axis=1, center=False) /* ty=Tensor[(2, 3, 8), float32] span=from_string:33:6 */;
+  %35 = sin(%33) /* ty=Tensor[(2, 2, 2), float32] span=from_string:33:10 */;
+  (%34, %35) /* ty=(Tensor[(2, 3, 8), float32], Tensor[(2, 2, 2), float32]) span=from_string:3:5 */
+}

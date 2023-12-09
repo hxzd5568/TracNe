@@ -1,0 +1,93 @@
+Fixed
+
+
+**************************************************
+fixed method: Targeted repair
+
+
+**************************************************
+After repairing, error prone input's mean relatively error is: 0.0001073870
+
+
+**************************************************
+After repairing, mean relatively error is: 0.0000000000
+
+
+**************************************************
+The best recommendation:
+
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(3), float16] /* ty=Tensor[(3), float16] span=from_string:6:13 */, %x1: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:23:23 */, %x2: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:42:84 */, %x3: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:42:89 */, %x4: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:53:18 */, %x5: Tensor[(8), float16] /* ty=Tensor[(8), float16] */, %x6: Tensor[(8), float16] /* ty=Tensor[(8), float16] */, hash="51715fc87749ad48") -> (Tensor[(3, 8, 1), float16],) {
+  %0 = reshape(%x0, newshape=[3, 1, 1]) /* ty=Tensor[(3, 1, 1), float16] span=from_string:4:5 */;
+  %1 = mean(%0, axis=[1], keepdims=True) /* ty=Tensor[(3, 1, 1), float16] span=from_string:8:7 */;
+  %2 = sum(%1, axis=[1], keepdims=True) /* ty=Tensor[(3, 1, 1), float16] span=from_string:12:5 */;
+  %3 = nn.relu(%2) /* ty=Tensor[(3, 1, 1), float16] span=from_string:19:20 */;
+  %4 = subtract(%3, %1) /* ty=Tensor[(3, 1, 1), float16] span=from_string:18:21 */;
+  %5 = fast_tanh(%4) /* ty=Tensor[(3, 1, 1), float16] span=from_string:19:15 */;
+  %6 = add(%5, %3) /* ty=Tensor[(3, 1, 1), float16] span=from_string:21:9 */;
+  %7 = expand_dims(%x1, axis=1) /* ty=Tensor[(1, 1), float16] span=from_string:21:14 */;
+  %8 = add(%6, %7) /* ty=Tensor[(3, 1, 1), float16] span=from_string:16:5 */;
+  %9 = mean(%8, axis=[1], keepdims=True) /* ty=Tensor[(3, 1, 1), float16] span=from_string:25:7 */;
+  %10 = variance(%8, %9, axis=[1], keepdims=True) /* ty=Tensor[(3, 1, 1), float16] span=from_string:29:5 */;
+  %11 = add(%10, 1.00136e-05f16 /* ty=float16 span=from_string:42:42 */) /* ty=Tensor[(3, 1, 1), float16] span=from_string:35:17 */;
+  %12 = subtract(%8, %9) /* ty=Tensor[(3, 1, 1), float16] span=from_string:36:21 */;
+  %13 = rsqrt(%11) /* ty=Tensor[(3, 1, 1), float16] span=from_string:36:26 */;
+  %14 = multiply(%12, %13) /* ty=Tensor[(3, 1, 1), float16] span=from_string:38:21 */;
+  %15 = expand_dims(%x2, axis=1) /* ty=Tensor[(1, 1), float16] span=from_string:38:26 */;
+  %16 = multiply(%14, %15) /* ty=Tensor[(3, 1, 1), float16] span=from_string:40:9 */;
+  %17 = expand_dims(%x3, axis=1) /* ty=Tensor[(1, 1), float16] span=from_string:40:14 */;
+  %18 = add(%16, %17) /* ty=Tensor[(3, 1, 1), float16] span=from_string:33:5 */;
+  %19 = sin(%18) /* ty=Tensor[(3, 1, 1), float16] span=from_string:44:5 */;
+  %20 = nn.batch_flatten(%19) /* ty=Tensor[(3, 1), float16] span=from_string:49:20 */;
+  %21 = nn.prelu(%20, %x4) /* ty=Tensor[(3, 1), float16] span=from_string:50:19 */;
+  %22 = reshape(%21, newshape=[3, 1, 1]) /* ty=Tensor[(3, 1, 1), float16] span=from_string:51:13 */;
+  %23 = nn.relu(%22) /* ty=Tensor[(3, 1, 1), float16] span=from_string:48:5 */;
+  %24 = add(%23, %18) /* ty=Tensor[(3, 1, 1), float16] span=from_string:56:23 */;
+  %25 = (%24, %19, %24, %2) /* ty=(Tensor[(3, 1, 1), float16], Tensor[(3, 1, 1), float16], Tensor[(3, 1, 1), float16], Tensor[(3, 1, 1), float16]) span=from_string:57:17 */;
+  %26 = concatenate(%25, axis=1) /* ty=Tensor[(3, 4, 1), float16] span=from_string:55:5 */;
+  %27 = nn.leaky_relu(%26, alpha=0.120338f) /* ty=Tensor[(3, 4, 1), float16] span=from_string:61:5 */;
+  %28 = nn.max_pool1d(%27, pool_size=[3], padding=[1, 1], ceil_mode=True) /* ty=Tensor[(3, 4, 1), float16] span=from_string:66:15 */;
+  %29 = abs(%28) /* ty=Tensor[(3, 4, 1), float16] span=from_string:67:14 */;
+  %30 = minimum(%29, %8) /* ty=Tensor[(3, 4, 1), float16] span=from_string:65:5 */;
+  %31 = nn.fast_softmax(%30, axis=1) /* ty=Tensor[(3, 4, 1), float16] span=from_string:72:19 */;
+  %32 = sigmoid(%31) /* ty=Tensor[(3, 4, 1), float16] span=from_string:73:21 */;
+  %33 = multiply(%32, %26) /* ty=Tensor[(3, 4, 1), float16] span=from_string:74:19 */;
+  %34 = nn.relu(%33) /* ty=Tensor[(3, 4, 1), float16] span=from_string:75:13 */;
+  %35 = nn.relu(%34) /* ty=Tensor[(3, 4, 1), float16] span=from_string:71:5 */;
+  %36 = (%35, %30) /* ty=(Tensor[(3, 4, 1), float16], Tensor[(3, 4, 1), float16]) span=from_string:81:23 */;
+  %37 = split(%23, indices_or_sections=[], axis=1) /* ty=(Tensor[(3, 1, 1), float16],) span=from_string:82:11 */;
+  %38 = concatenate(%36, axis=1) /* ty=Tensor[(3, 8, 1), float16] span=from_string:83:20 */;
+  %39 = %37.0 /* ty=Tensor[(3, 1, 1), float16] span=from_string:83:25 */;
+  %40 = maximum(%38, %39) /* ty=Tensor[(3, 8, 1), float16] span=from_string:84:19 */;
+  %41 = strided_slice(%40, begin=[0], end=[1], strides=[2], axes=[2]) /* ty=Tensor[(3, 8, 1), float16] span=from_string:79:5 */;
+  %42 = mean(%41, axis=[1], keepdims=True) /* ty=Tensor[(3, 1, 1), float16] span=from_string:88:7 */;
+  %43 = cast(%41, dtype="float64") /* ty=Tensor[(3, 8, 1), float64] span=from_string:101:17 */;
+  %44 = cast(%42, dtype="float64") /* ty=Tensor[(3, 1, 1), float64] span=from_string:101:21 */;
+  %45 = variance(%41, %42, axis=[1], keepdims=True) /* ty=Tensor[(3, 1, 1), float16] span=from_string:92:5 */;
+  %46 = cast(%45, dtype="float64") /* ty=Tensor[(3, 1, 1), float64] span=from_string:100:12 */;
+  %47 = cast(1.00136e-05f16 /* ty=float16 span=from_string:106:42 */, dtype="float64") /* ty=float64 span=from_string:100:16 */;
+  %48 = add(%46, %47) /* ty=Tensor[(3, 1, 1), float64] span=from_string:102:14 */;
+  %49 = subtract(%43, %44) /* ty=Tensor[(3, 8, 1), float64] span=from_string:103:18 */;
+  %50 = rsqrt(%48) /* ty=Tensor[(3, 1, 1), float64] span=from_string:103:22 */;
+  %51 = multiply(%49, %50) /* ty=Tensor[(3, 8, 1), float64] span=from_string:104:8 */;
+  %52 = cast(%51, dtype="float16") /* ty=Tensor[(3, 8, 1), float16] span=from_string:96:3 */;
+  (%52,) /* ty=(Tensor[(3, 8, 1), float16],) span=from_string:3:3 */
+}
+
+
+
+**************************************************
+The repair subgraph:
+
+#[version = "0.0.5"]
+def @main(%p0: Tensor[(3, 8, 1), float16] /* ty=Tensor[(3, 8, 1), float16] span=from_string:3:13 */, %p1: Tensor[(3, 1, 1), float16] /* ty=Tensor[(3, 1, 1), float16] span=from_string:4:13 */, %p2: Tensor[(3, 1, 1), float16] /* ty=Tensor[(3, 1, 1), float16] span=from_string:5:13 */, %p3: float16 /* ty=float16 span=from_string:6:13 */) -> Tensor[(3, 8, 1), float16] {
+  %0 = cast(%p0, dtype="float64") /* ty=Tensor[(3, 8, 1), float64] span=from_string:8:17 */;
+  %1 = cast(%p1, dtype="float64") /* ty=Tensor[(3, 1, 1), float64] span=from_string:8:21 */;
+  %2 = cast(%p2, dtype="float64") /* ty=Tensor[(3, 1, 1), float64] span=from_string:7:12 */;
+  %3 = cast(%p3, dtype="float64") /* ty=float64 span=from_string:7:16 */;
+  %4 = add(%2, %3) /* ty=Tensor[(3, 1, 1), float64] span=from_string:9:14 */;
+  %5 = subtract(%0, %1) /* ty=Tensor[(3, 8, 1), float64] span=from_string:10:18 */;
+  %6 = rsqrt(%4) /* ty=Tensor[(3, 1, 1), float64] span=from_string:10:22 */;
+  %7 = multiply(%5, %6) /* ty=Tensor[(3, 8, 1), float64] span=from_string:11:8 */;
+  cast(%7, dtype="float16") /* ty=Tensor[(3, 8, 1), float16] span=from_string:3:3 */
+}

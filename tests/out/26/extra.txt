@@ -1,0 +1,205 @@
+At operator 0:
+array([[0.09317847, 0.02090804, 0.17532842],
+       [0.08402636, 0.11378397, 0.04315562],
+       [0.07345729, 0.00410139, 0.12472431],
+       [0.03341619, 0.04103975, 0.04394104]], dtype=float32)
+
+At operator 1:
+array([[0.30525148, 0.14459611, 0.41872236],
+       [0.289873  , 0.3373188 , 0.20773931],
+       [0.27103004, 0.06404211, 0.35316327],
+       [0.18280095, 0.2025827 , 0.20962118]], dtype=float32)
+
+At operator 2:
+array([[ 13.217221 , -12.120827 ,   3.4280336],
+       [-14.62643  ,  -9.3135395,   3.3273585],
+       [ -7.653321 ,  74.35912  ,  -8.798047 ],
+       [ 11.663564 , -23.204227 , -21.651316 ]], dtype=float32)
+
+At operator 3:
+array([  4.5244284, -20.61261  ,  57.907757 , -33.19198  ], dtype=float32)
+
+At operator 4:
+array([5.257462, 5.13711 , 4.652722, 4.803363], dtype=float32)
+
+At operator 5:
+array([5.257462, 5.13711 , 4.652722, 4.803363], dtype=float32)
+
+At operator 6:
+array([5., 5., 5., 5.], dtype=float32)
+
+At operator 7:
+array([5., 5., 5., 5.], dtype=float32)
+
+At operator 8:
+array([5., 5., 5., 5.], dtype=float32)
+
+At operator 9:
+array([0.2836622, 0.2836622, 0.2836622, 0.2836622], dtype=float32)
+
+At operator 10:
+array([0.96003693, 0.96003693, 0.96003693, 0.96003693], dtype=float32)
+
+At operator 11:
+array([0.96003693, 0.96003693, 0.96003693, 0.96003693], dtype=float32)
+
+At operator 12:
+array([1., 1., 1., 1.], dtype=float32)
+
+At operator 13:
+array([1.5574077, 1.5574077, 1.5574077, 1.5574077], dtype=float32)
+
+At operator 14:
+array([1.5574077, 1.5574077, 1.5574077, 1.5574077], dtype=float32)
+
+At operator 15:
+array([0.825981, 0.825981, 0.825981, 0.825981], dtype=float32)
+
+At operator 16:
+array([0.6955045, 0.6955045, 0.6955045, 0.6955045], dtype=float32)
+
+At operator 17:
+array([0.60150653, 0.60150653, 0.60150653, 0.60150653], dtype=float32)
+
+At operator 18:
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 19:
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 20:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+
+At operator 21:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0.9933072, 0.9933072, 0.9933072, 0.9933072], dtype=float32)
+
+At operator 22:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 23:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 24:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 25:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 26:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+array([1., 1., 1., 1.], dtype=float32)
+
+At operator 27:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+array([-1., -1., -1., -1.], dtype=float32)
+
+At operator 28:
+array([[[-1.]],
+
+       [[-1.]],
+
+       [[-1.]],
+
+       [[-1.]]], dtype=float32)
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 29:
+array([[[-0.00944293]],
+
+       [[-0.00944293]],
+
+       [[-0.00944293]],
+
+       [[-0.00944293]]], dtype=float32)
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 30:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([[[0.07667404]],
+
+       [[0.07667404]],
+
+       [[0.07667404]],
+
+       [[0.07667404]]], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 31:
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([[[0.]],
+
+       [[0.]],
+
+       [[0.]],
+
+       [[0.]]], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 32:
+array([[[0.]],
+
+       [[0.]],
+
+       [[0.]],
+
+       [[0.]]], dtype=float32)
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 33:
+array([[[0.]],
+
+       [[0.]],
+
+       [[0.]],
+
+       [[0.]]], dtype=float32)
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0.9933072, 0.9933072, 0.9933072, 0.9933072], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 34:
+array([[[0.]],
+
+       [[0.]],
+
+       [[0.]],
+
+       [[0.]]], dtype=float32)
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0.75876904, 0.75876904, 0.75876904, 0.75876904], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 35:
+array([[[0.]],
+
+       [[0.]],
+
+       [[0.]],
+
+       [[0.]]], dtype=float32)
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([2.1356456, 2.1356456, 2.1356456, 2.1356456], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
+At operator 36:
+array([[[0.]],
+
+       [[0.]],
+
+       [[0.]],
+
+       [[0.]]], dtype=float32)
+array([0.5, 0.5, 0.5, 0.5], dtype=float32)
+array([0.9724572, 0.9724572, 0.9724572, 0.9724572], dtype=float32)
+array([0., 0., 0., 0.], dtype=float32)
+
