@@ -1,0 +1,1 @@
+tvmgen_default_fused_cos_fast_tanh,1.4148915455076682e-07

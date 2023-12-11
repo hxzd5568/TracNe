@@ -1,0 +1,1 @@
+["qnn.Legalize", "QnnLegalize", "QnnCanonicalize", "FoldConstant", "FoldScaleAxis", "BackwardFoldScaleAxis", "ForwardFoldScaleAxis", "SimplifyExpr", "FlattenAtrousConv", "AlterOpLayout", "SimplifyExprPostAlterOp", "FastMath", "SplitArgs", "InlineGlobals", "LabelOps", "AnnotateMemoryScope"]

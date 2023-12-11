@@ -1,0 +1,45 @@
+
+
+********opt5**************************************************
+
+def @main(%x : Tensor[(32), float16] /* ty=Tensor[(32), float16] span=from_string:3:12 */, hash="aa88608b560ed184", ) -> Tensor[(32), float16] {
+  %1 = fn (%p0: Tensor[(32), float16] /* ty=Tensor[(32), float16] */, %p1: Tensor[(32), float16] /* ty=Tensor[(32), float16] */, %p2: Tensor[(32), float16] /* ty=Tensor[(32), float16] */, Primitive=1, hash="a9bd0deb2e6f7cf3") -> Tensor[(32), float16] {
+    %0 = multiply(%p0, %p1) /* ty=Tensor[(32), float16] */;
+    add(%0, %p2) /* ty=Tensor[(32), float16] */
+  } /* ty=fn (Tensor[(32), float16], Tensor[(32), float16], Tensor[(32), float16]) -> Tensor[(32), float16] */;
+  %1(%x, meta[relay.Constant][0] /* ty=Tensor[(32), float16] span=from_string:4:27 */, meta[relay.Constant][1] /* ty=Tensor[(32), float16] */) /* ty=Tensor[(32), float16] */
+}
+
+
+
+
+********opt1**************************************************
+
+def @main(%x : Tensor[(32), float16] /* ty=Tensor[(32), float16] span=from_string:3:12 */, hash="aa88608b560ed184", ) -> Tensor[(32), float16] {
+  %1 = fn (%p0: Tensor[(32), float16] /* ty=Tensor[(32), float16] */, %p1: Tensor[(32), float16] /* ty=Tensor[(32), float16] */, %p2: Tensor[(32), float16] /* ty=Tensor[(32), float16] */, Primitive=1, hash="a9bd0deb2e6f7cf3") -> Tensor[(32), float16] {
+    %0 = multiply(%p0, %p1) /* ty=Tensor[(32), float16] */;
+    add(%0, %p2) /* ty=Tensor[(32), float16] */
+  } /* ty=fn (Tensor[(32), float16], Tensor[(32), float16], Tensor[(32), float16]) -> Tensor[(32), float16] */;
+  %1(%x, meta[relay.Constant][0] /* ty=Tensor[(32), float16] span=from_string:4:27 */, meta[relay.Constant][1] /* ty=Tensor[(32), float16] */) /* ty=Tensor[(32), float16] */
+}
+
+
+
+
+********opt5**************************************************
+
+(0, 'x')
+(1, 'p0')
+(2, 'p1')
+(3, 'tvmgen_default_fused_multiply_add')
+op topo: [(0, 0), (1, 1), (2, 2), (4, 3)]
+
+
+********opt1**************************************************
+
+(0, 'x')
+(1, 'p0')
+(2, 'p1')
+(3, 'p2')
+(4, 'tvmgen_default_fused_add_multiply_add')
+op unopt_topo: [(0, 0), (1, 1), (2, 2), (3, 3), (6, 4)]

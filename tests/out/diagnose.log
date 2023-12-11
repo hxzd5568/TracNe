@@ -1,0 +1,5 @@
+---------- begin file: ---------- 1 ---------- 
+
+
+op topo: [(0, 0, (4, 3)), (1, 1, (4, 3)), (5, 2, (4,)), (7, 3, (4,))]
+{'trace stored in file:', '/home/user/tvm/Fuzzfp/Gencog/introcase/tests//out/1/trace.json'}

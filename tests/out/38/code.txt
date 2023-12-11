@@ -1,0 +1,12 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(16, 12), float16] /* ty=Tensor[(16, 12), float16] span=from_string:4:24 */, %x1: Tensor[(12), float16] /* ty=Tensor[(12), float16] span=from_string:8:28 */, %x2: Tensor[(12), float16] /* ty=Tensor[(12), float16] span=from_string:8:33 */) -> (Tensor[(16, 12), float16],) {
+  %0 = mean(%x0, axis=[1], keepdims=True) /* ty=Tensor[(16, 1), float16] span=from_string:4:20 */;
+  %1 = multiply(%0, %x0) /* ty=Tensor[(16, 12), float16] span=from_string:5:14 */;
+  %2 = cos(%1) /* ty=Tensor[(16, 12), float16] span=from_string:6:15 */;
+  %3 = tanh(%2) /* ty=Tensor[(16, 12), float16] span=from_string:9:18 */;
+  %4 = tan(%3) /* ty=Tensor[(16, 12), float16] span=from_string:8:24 */;
+  %5 = nn.group_norm(%4, %x1, %x2, num_groups=2, center=False) /* ty=Tensor[(16, 12), float16] span=from_string:9:14 */;
+  %6 = add(%5, %3) /* ty=Tensor[(16, 12), float16] span=from_string:10:21 */;
+  %7 = nn.softmax(%6, axis=1) /* ty=Tensor[(16, 12), float16] span=from_string:11:6 */;
+  (%7,) /* ty=(Tensor[(16, 12), float16],) span=from_string:3:5 */
+}

@@ -1,0 +1,45 @@
+Fixed
+
+
+**************************************************
+fixed method: Targeted repair
+
+
+**************************************************
+After repairing, error prone input's mean relatively error is: 0.0000000880
+
+
+**************************************************
+After repairing, mean relatively error is: 0.0000000000
+
+
+**************************************************
+The best recommendation:
+
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(15, 10), float32] /* ty=Tensor[(15, 10), float32] span=from_string:11:11 */, hash="55ee969254707812") -> (Tensor[(15), float32],) {
+  %0 = sigmoid(%x0) /* ty=Tensor[(15, 10), float32] span=from_string:5:23 */;
+  %1 = maximum(%0, %0) /* ty=Tensor[(15, 10), float32] span=from_string:6:22 */;
+  %2 = expand_dims(%1, axis=1, num_newaxis=0) /* ty=Tensor[(15, 10), float32] span=from_string:7:19 */;
+  %3 = fast_exp(%2) /* ty=Tensor[(15, 10), float32] span=from_string:8:16 */;
+  %4 = trunc(%3) /* ty=Tensor[(15, 10), float32] span=from_string:9:12 */;
+  %5 = mean(%4, axis=[1]) /* ty=Tensor[(15), float32] span=from_string:4:5 */;
+  %6 = cast(%5, dtype="float64") /* ty=Tensor[(15), float64] span=from_string:14:12 */;
+  %7 = cos(%6) /* ty=Tensor[(15), float64] span=from_string:15:18 */;
+  %8 = fast_tanh(%7) /* ty=Tensor[(15), float64] span=from_string:16:8 */;
+  %9 = cast(%8, dtype="float32") /* ty=Tensor[(15), float32] span=from_string:13:3 */;
+  (%9,) /* ty=(Tensor[(15), float32],) span=from_string:3:3 */
+}
+
+
+
+**************************************************
+The repair subgraph:
+
+#[version = "0.0.5"]
+def @main(%p0: Tensor[(15), float32] /* ty=Tensor[(15), float32] span=from_string:3:13 */) -> Tensor[(15), float32] {
+  %0 = cast(%p0, dtype="float64") /* ty=Tensor[(15), float64] span=from_string:4:12 */;
+  %1 = cos(%0) /* ty=Tensor[(15), float64] span=from_string:5:18 */;
+  %2 = fast_tanh(%1) /* ty=Tensor[(15), float64] span=from_string:6:8 */;
+  cast(%2, dtype="float32") /* ty=Tensor[(15), float32] span=from_string:3:3 */
+}

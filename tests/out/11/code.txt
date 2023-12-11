@@ -1,0 +1,5 @@
+#[version = "0.0.5"]
+def @main(%x: Tensor[(256, 2, 1), float32]) {
+  %0 = sqrt(%x);
+  divide(2.5f, %0)
+}

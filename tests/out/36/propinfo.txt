@@ -1,0 +1,1 @@
+tvmgen_default_fused_nn_relu_abs_abs_cos_fast_exp_tan_sigmoid_sin,6.5186124972869846e-06

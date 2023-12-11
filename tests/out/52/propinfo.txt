@@ -1,0 +1,2 @@
+tvmgen_default_fused_negative_reshape_maximum_nn_prelu_fast_tanh,2.1071601263944792e-07
+tvmgen_default_fused_nn_adaptive_avg_pool1d,2.1071601263944792e-07

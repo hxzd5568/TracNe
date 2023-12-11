@@ -1,0 +1,34 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(3), float32] /* ty=Tensor[(3), float32] span=from_string:10:16 */, %x1: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:21:28 */, %x2: Tensor[(3), float32] /* ty=Tensor[(3), float32] span=from_string:31:30 */, %x3: Tensor[(3), float32] /* ty=Tensor[(3), float32] span=from_string:31:35 */) -> (Tensor[(3, 3, 1), float32],) {
+  %0 = nn.leaky_relu(%x0, alpha=0.942075f) /* ty=Tensor[(3), float32] span=from_string:4:14 */;
+  %1 = abs(%0) /* ty=Tensor[(3), float32] span=from_string:5:14 */;
+  %2 = sin(%1) /* ty=Tensor[(3), float32] span=from_string:24:17 */;
+  %3 = sin(%2) /* ty=Tensor[(3), float32] span=from_string:7:18 */;
+  %4 = reshape(%3, newshape=[3, 1, 1]) /* ty=Tensor[(3, 1, 1), float32] span=from_string:8:14 */;
+  %5 = tan(%4) /* ty=Tensor[(3, 1, 1), float32] span=from_string:9:16 */;
+  %6 = round(%x0) /* ty=Tensor[(3), float32] span=from_string:11:18 */;
+  %7 = sigmoid(%6) /* ty=Tensor[(3), float32] span=from_string:12:14 */;
+  %8 = cos(%7) /* ty=Tensor[(3), float32] span=from_string:13:15 */;
+  %9 = abs(%8) /* ty=Tensor[(3), float32] span=from_string:14:15 */;
+  %10 = exp(%9) /* ty=Tensor[(3), float32] span=from_string:15:17 */;
+  %11 = round(%10) /* ty=Tensor[(3), float32] span=from_string:16:21 */;
+  %12 = transpose(%11, axes=[0]) /* ty=Tensor[(3), float32] span=from_string:17:17 */;
+  %13 = trunc(%12) /* ty=Tensor[(3), float32] span=from_string:18:17 */;
+  %14 = trunc(%13) /* ty=Tensor[(3), float32] span=from_string:19:19 */;
+  %15 = nn.relu(%14) /* ty=Tensor[(3), float32] span=from_string:20:19 */;
+  %16 = reshape(%15, newshape=[3, 1]) /* ty=Tensor[(3, 1), float32] span=from_string:21:23 */;
+  %17 = nn.bias_add(%16, %x1) /* ty=Tensor[(3, 1), float32] span=from_string:22:28 */;
+  %18 = nn.batch_flatten(%17) /* ty=Tensor[(3, 1), float32] span=from_string:23:25 */;
+  %19 = floor(%2) /* ty=Tensor[(3), float32] span=from_string:25:19 */;
+  %20 = reshape(%19, newshape=[3, 1]) /* ty=Tensor[(3, 1), float32] span=from_string:26:15 */;
+  %21 = nn.leaky_relu(%18, alpha=0.381725f) /* ty=Tensor[(3, 1), float32] span=from_string:27:20 */;
+  %22 = sum(%20, axis=[1], keepdims=True) /* ty=Tensor[(3, 1), float32] span=from_string:27:25 */;
+  %23 = floor(%5) /* ty=Tensor[(3, 1, 1), float32] span=from_string:28:15 */;
+  %24 = maximum(%21, %22) /* ty=Tensor[(3, 1), float32] span=from_string:28:19 */;
+  %25 = add(%23, %24) /* ty=Tensor[(3, 3, 1), float32] span=from_string:29:22 */;
+  %26 = nn.softmax(%25, axis=1) /* ty=Tensor[(3, 3, 1), float32] span=from_string:30:25 */;
+  %27 = minimum(%26, %26) /* ty=Tensor[(3, 3, 1), float32] span=from_string:31:25 */;
+  %28 = nn.layer_norm(%27, %x2, %x3, axis=1, center=False, scale=False) /* ty=Tensor[(3, 3, 1), float32] span=from_string:32:20 */;
+  %29 = negative(%28) /* ty=Tensor[(3, 3, 1), float32] span=from_string:33:6 */;
+  (%29,) /* ty=(Tensor[(3, 3, 1), float32],) span=from_string:3:5 */
+}

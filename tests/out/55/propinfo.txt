@@ -1,0 +1,7 @@
+tvmgen_default_fused_subtract_add_rsqrt_multiply_reshape_add,2.4830486413758433e-08
+tvmgen_default_fused_concatenate,8.276828804586143e-09
+tvmgen_default_fused_abs,8.276828804586143e-09
+tvmgen_default_fused_cos,2.7895311561971016e-08
+tvmgen_default_fused_add_concatenate_add,1.5871478043048634e-08
+tvmgen_default_fused_multiply,2.266143320984153e-08
+tvmgen_default_fused_nn_fast_softmax,2.8460792572469152e-08

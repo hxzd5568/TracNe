@@ -1,0 +1,12 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(15, 10), float32] /* ty=Tensor[(15, 10), float32] span=from_string:3:18 */) -> (Tensor[(15), float32],) {
+  %0 = sigmoid(%x0) /* ty=Tensor[(15, 10), float32] span=from_string:4:23 */;
+  %1 = maximum(%0, %0) /* ty=Tensor[(15, 10), float32] span=from_string:5:22 */;
+  %2 = expand_dims(%1, axis=1, num_newaxis=0) /* ty=Tensor[(15, 10), float32] span=from_string:6:14 */;
+  %3 = exp(%2) /* ty=Tensor[(15, 10), float32] span=from_string:7:16 */;
+  %4 = trunc(%3) /* ty=Tensor[(15, 10), float32] span=from_string:8:17 */;
+  %5 = mean(%4, axis=[1]) /* ty=Tensor[(15), float32] span=from_string:9:14 */;
+  %6 = cos(%5) /* ty=Tensor[(15), float32] span=from_string:10:15 */;
+  %7 = tanh(%6) /* ty=Tensor[(15), float32] span=from_string:11:6 */;
+  (%7,) /* ty=(Tensor[(15), float32],) span=from_string:3:5 */
+}

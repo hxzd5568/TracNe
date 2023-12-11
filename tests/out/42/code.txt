@@ -1,0 +1,34 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(20, 14), float16] /* ty=Tensor[(20, 14), float16] span=from_string:3:25 */, %x1: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:6:28 */, %x2: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:6:33 */, %x3: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:10:26 */, %x4: Tensor[(1), float16] /* ty=Tensor[(1), float16] span=from_string:24:28 */, %x5: Tensor[(14), float16] /* ty=Tensor[(14), float16] span=from_string:27:30 */, %x6: Tensor[(14), float16] /* ty=Tensor[(14), float16] span=from_string:27:35 */, %x7: Tensor[(20), float16] /* ty=Tensor[(20), float16] span=from_string:31:30 */, %x8: Tensor[(20), float16] /* ty=Tensor[(20), float16] span=from_string:31:35 */) -> (Tensor[(20, 20, 14), float16],) {
+  %0 = multiply(%x0, %x0) /* ty=Tensor[(20, 14), float16] span=from_string:26:21 */;
+  %1 = reshape(%0, newshape=[20, 1, 14]) /* ty=Tensor[(20, 1, 14), float16] span=from_string:20:34 */;
+  %2 = nn.adaptive_max_pool1d(%1, output_size=[1]) /* ty=Tensor[(20, 1, 1), float16] span=from_string:6:24 */;
+  %3 = nn.group_norm(%2, %x1, %x2, num_groups=1, scale=False) /* ty=Tensor[(20, 1, 1), float16] span=from_string:7:24 */;
+  %4 = nn.avg_pool1d(%3, pool_size=[3], strides=[2], padding=[1, 2]) /* ty=Tensor[(20, 1, 1), float16] span=from_string:8:24 */;
+  %5 = nn.leaky_relu(%4, alpha=0.236287f) /* ty=Tensor[(20, 1, 1), float16] span=from_string:9:15 */;
+  %6 = max(%5, axis=[1], keepdims=True) /* ty=Tensor[(20, 1, 1), float16] span=from_string:10:22 */;
+  %7 = nn.bias_add(%6, %x3) /* ty=Tensor[(20, 1, 1), float16] span=from_string:32:23 */;
+  %8 = sigmoid(%7) /* ty=Tensor[(20, 1, 1), float16] span=from_string:12:22 */;
+  %9 = expand_dims(%8, axis=2, num_newaxis=0) /* ty=Tensor[(20, 1, 1), float16] span=from_string:13:16 */;
+  %10 = ceil(%9) /* ty=Tensor[(20, 1, 1), float16] span=from_string:29:20 */;
+  %11 = nn.max_pool1d(%10, pool_size=[3], strides=[2], padding=[1, 1], ceil_mode=True) /* ty=Tensor[(20, 1, 1), float16] span=from_string:15:23 */;
+  %12 = expand_dims(%11, axis=1, num_newaxis=0) /* ty=Tensor[(20, 1, 1), float16] span=from_string:16:16 */;
+  %13 = min(%12, axis=[1], keepdims=True) /* ty=Tensor[(20, 1, 1), float16] span=from_string:17:15 */;
+  %14 = tan(%13) /* ty=Tensor[(20, 1, 1), float16] span=from_string:18:34 */;
+  %15 = nn.adaptive_avg_pool1d(%14, output_size=[1]) /* ty=Tensor[(20, 1, 1), float16] span=from_string:19:19 */;
+  %16 = nn.adaptive_max_pool1d(%1, output_size=[1]) /* ty=Tensor[(20, 1, 1), float16] span=from_string:21:25 */;
+  %17 = nn.leaky_relu(%16, alpha=0.767326f) /* ty=Tensor[(20, 1, 1), float16] span=from_string:22:19 */;
+  %18 = reshape(%17, newshape=[20, 1]) /* ty=Tensor[(20, 1), float16] span=from_string:23:16 */;
+  %19 = tanh(%18) /* ty=Tensor[(20, 1), float16] span=from_string:25:20 */;
+  %20 = nn.bias_add(%19, %x4) /* ty=Tensor[(20, 1), float16] span=from_string:25:15 */;
+  %21 = add(%20, %19) /* ty=Tensor[(20, 1), float16] span=from_string:26:25 */;
+  %22 = multiply(%0, %21) /* ty=Tensor[(20, 14), float16] span=from_string:27:25 */;
+  %23 = nn.relu(%15) /* ty=Tensor[(20, 1, 1), float16] span=from_string:28:21 */;
+  %24 = nn.layer_norm(%22, %x5, %x6, axis=1, center=False, scale=False) /* ty=Tensor[(20, 14), float16] span=from_string:28:26 */;
+  %25 = multiply(%23, %24) /* ty=Tensor[(20, 20, 14), float16] span=from_string:29:15 */;
+  %26 = add(%25, %10) /* ty=Tensor[(20, 20, 14), float16] span=from_string:30:22 */;
+  %27 = nn.softmax(%26, axis=1) /* ty=Tensor[(20, 20, 14), float16] span=from_string:31:25 */;
+  %28 = nn.layer_norm(%27, %x7, %x8, axis=1, scale=False) /* ty=Tensor[(20, 20, 14), float16] span=from_string:32:18 */;
+  %29 = divide(%28, %7) /* ty=Tensor[(20, 20, 14), float16] span=from_string:33:6 */;
+  (%29,) /* ty=(Tensor[(20, 20, 14), float16],) span=from_string:3:5 */
+}

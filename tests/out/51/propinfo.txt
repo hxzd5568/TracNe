@@ -1,0 +1,5 @@
+tvmgen_default_fused_fast_tanh_ceil_ceil_abs_fast_exp_fast_tanh_nn_leaky_relu_nn_relu,1.803780200083473e-07
+reshape_nop_4,1.803780200083473e-07
+tvmgen_default_fused_reshape_expand_dims_minimum_maximum_cos,3.2655399376775294e-07
+tvmgen_default_fused_transpose,3.2655399376775294e-07
+tvmgen_default_fused_transpose_1,3.2655399376775294e-07

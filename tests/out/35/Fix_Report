@@ -1,0 +1,51 @@
+Fixed
+
+
+**************************************************
+fixed method: Targeted repair
+
+
+**************************************************
+After repairing, error prone input's mean relatively error is: 0.0000000956
+
+
+**************************************************
+After repairing, mean relatively error is: 0.0000000000
+
+
+**************************************************
+The best recommendation:
+
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(7), float32] /* ty=Tensor[(7), float32] span=from_string:15:12 */, hash="6de41fa2b8399a3c") -> (Tensor[(7), float32],) {
+  %0 = cast(%x0, dtype="float64") /* ty=Tensor[(7), float64] span=from_string:5:14 */;
+  %1 = round(%0) /* ty=Tensor[(7), float64] span=from_string:6:12 */;
+  %2 = cos(%1) /* ty=Tensor[(7), float64] span=from_string:7:12 */;
+  %3 = sin(%2) /* ty=Tensor[(7), float64] span=from_string:8:17 */;
+  %4 = fast_exp(%3) /* ty=Tensor[(7), float64] span=from_string:9:12 */;
+  %5 = abs(%4) /* ty=Tensor[(7), float64] span=from_string:10:12 */;
+  %6 = sin(%5) /* ty=Tensor[(7), float64] span=from_string:11:18 */;
+  %7 = fast_tanh(%6) /* ty=Tensor[(7), float64] span=from_string:12:17 */;
+  %8 = fast_exp(%7) /* ty=Tensor[(7), float64] span=from_string:13:8 */;
+  %9 = cast(%8, dtype="float32") /* ty=Tensor[(7), float32] span=from_string:4:3 */;
+  (%9,) /* ty=(Tensor[(7), float32],) span=from_string:3:3 */
+}
+
+
+
+**************************************************
+The repair subgraph:
+
+#[version = "0.0.5"]
+def @main(%p0: Tensor[(7), float32] /* ty=Tensor[(7), float32] span=from_string:3:13 */) -> Tensor[(7), float32] {
+  %0 = cast(%p0, dtype="float64") /* ty=Tensor[(7), float64] span=from_string:4:14 */;
+  %1 = round(%0) /* ty=Tensor[(7), float64] span=from_string:5:12 */;
+  %2 = cos(%1) /* ty=Tensor[(7), float64] span=from_string:6:12 */;
+  %3 = sin(%2) /* ty=Tensor[(7), float64] span=from_string:7:17 */;
+  %4 = fast_exp(%3) /* ty=Tensor[(7), float64] span=from_string:8:12 */;
+  %5 = abs(%4) /* ty=Tensor[(7), float64] span=from_string:9:12 */;
+  %6 = sin(%5) /* ty=Tensor[(7), float64] span=from_string:10:18 */;
+  %7 = fast_tanh(%6) /* ty=Tensor[(7), float64] span=from_string:11:17 */;
+  %8 = fast_exp(%7) /* ty=Tensor[(7), float64] span=from_string:12:8 */;
+  cast(%8, dtype="float32") /* ty=Tensor[(7), float32] span=from_string:3:3 */
+}

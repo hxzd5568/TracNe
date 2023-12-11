@@ -1,0 +1,2 @@
+tvmgen_default_fused_subtract_add_rsqrt_multiply_fast_exp,1.4545643802044574e-08
+tvmgen_default_fused_nn_fast_softmax_1,7.71276511772332e-08

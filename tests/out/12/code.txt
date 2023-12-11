@@ -1,0 +1,7 @@
+#[version = "0.0.5"]
+def @main(%data: Tensor[(2, 3, 256, 16), float32], %graph_conv_weight, %graph_bn_gamma, %graph_bn_beta, %graph_bn_moving_mean, %graph_bn_moving_var) {
+  %0 = nn.conv2d(%data, %graph_conv_weight, strides=[2, 2], padding=[1, 1, 1, 1], channels=3, kernel_size=[3, 3]);
+  %1 = nn.batch_norm(%0, %graph_bn_gamma, %graph_bn_beta, %graph_bn_moving_mean, %graph_bn_moving_var);
+  %2 = %1.0;
+  nn.relu(%2)
+}

@@ -1,0 +1,12 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(12, 16), float16] /* ty=Tensor[(12, 16), float16] span=from_string:4:23 */, %x1: Tensor[(16), float16] /* ty=Tensor[(16), float16] span=from_string:5:28 */, %x2: Tensor[(16), float16] /* ty=Tensor[(16), float16] span=from_string:5:33 */, %x3: Tensor[(16), float16] /* ty=Tensor[(16), float16] span=from_string:8:23 */, %x4: Tensor[(16), float16] /* ty=Tensor[(16), float16] span=from_string:9:26 */) -> (Tensor[(12, 16), float16],) {
+  %0 = floor(%x0) /* ty=Tensor[(12, 16), float16] span=from_string:4:19 */;
+  %1 = maximum(%0, %x0) /* ty=Tensor[(12, 16), float16] span=from_string:5:24 */;
+  %2 = nn.layer_norm(%1, %x1, %x2, axis=1, scale=False) /* ty=Tensor[(12, 16), float16] span=from_string:6:14 */;
+  %3 = tan(%2) /* ty=Tensor[(12, 16), float16] span=from_string:7:14 */;
+  %4 = cos(%3) /* ty=Tensor[(12, 16), float16] span=from_string:8:19 */;
+  %5 = nn.prelu(%4, %x3) /* ty=Tensor[(12, 16), float16] span=from_string:9:22 */;
+  %6 = nn.bias_add(%5, %x4) /* ty=Tensor[(12, 16), float16] span=from_string:10:14 */;
+  %7 = exp(%6) /* ty=Tensor[(12, 16), float16] span=from_string:11:6 */;
+  (%7,) /* ty=(Tensor[(12, 16), float16],) span=from_string:3:5 */
+}

@@ -1,0 +1,17 @@
+=========
+1
+-chain-   0 th
+2  tvmgen_default_fused_rsqrt,1.8050169807894942
+3  tvmgen_default_fused_multiply,5.375325570775288e-08
+
+=========
+1
+-chain-   0 th
+2  tvmgen_default_fused_rsqrt,1.8050169807894942
+3  tvmgen_default_fused_multiply,5.375325570775288e-08
+
+=========
+1
+-chain-   0 th
+1  tvmgen_default_fused_rsqrt_multiply,4.1468907880925004e-08
+

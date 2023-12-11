@@ -1,0 +1,41 @@
+#[version = "0.0.5"]
+def @main(%pznewx: Tensor[(4, 3), float32] /* ty=Tensor[(4, 3), float32] */, %pznewy: Tensor[(4, 3), float32] /* ty=Tensor[(4, 3), float32] */, %px1: Tensor[(1), float32] /* ty=Tensor[(1), float32] */, %px2: Tensor[(1), float32] /* ty=Tensor[(1), float32] */, %px3: Tensor[(1), float32] /* ty=Tensor[(1), float32] */) -> (Tensor[(4), float32], Tensor[(4), float32], Tensor[(4, 1, 1), float32], Tensor[(4), float32]) {
+  %0 = abs(%pznewy) /* ty=Tensor[(4, 3), float32] span=from_string:4:13 */;
+  %1 = sqrt(%0) /* ty=Tensor[(4, 3), float32] span=from_string:5:22 */;
+  %2 = divide(%pznewx, %1) /* ty=Tensor[(4, 3), float32] span=from_string:6:12 */;
+  %3 = sum(%2, axis=[1]) /* ty=Tensor[(4), float32] span=from_string:7:12 */;
+  %4 = tan(%3) /* ty=Tensor[(4), float32] span=from_string:8:16 */;
+  %5 = nn.relu(%4) /* ty=Tensor[(4), float32] span=from_string:9:9 */;
+  %6 = round(%5) /* ty=Tensor[(4), float32] span=from_string:3:3 */;
+  %7 = nn.relu(%6) /* ty=Tensor[(4), float32] span=from_string:17:19 */;
+  %8 = abs(%7) /* ty=Tensor[(4), float32] span=from_string:5:14 */;
+  %9 = cos(%8) /* ty=Tensor[(4), float32] span=from_string:6:14 */;
+  %10 = cos(%9) /* ty=Tensor[(4), float32] span=from_string:7:20 */;
+  %11 = transpose(%10, axes=[0]) /* ty=Tensor[(4), float32] span=from_string:8:16 */;
+  %12 = round(%11) /* ty=Tensor[(4), float32] span=from_string:22:19 */;
+  %13 = tan(%12) /* ty=Tensor[(4), float32] span=from_string:10:24 */;
+  %14 = nn.leaky_relu(%13, alpha=0.830004f) /* ty=Tensor[(4), float32] span=from_string:11:18 */;
+  %15 = sigmoid(%14) /* ty=Tensor[(4), float32] span=from_string:12:18 */;
+  %16 = sigmoid(%15) /* ty=Tensor[(4), float32] span=from_string:13:16 */;
+  %17 = tanh(%16) /* ty=Tensor[(4), float32] span=from_string:14:17 */;
+  %18 = trunc(%17) /* ty=Tensor[(4), float32] span=from_string:15:17 */;
+  %19 = round(%18) /* ty=Tensor[(4), float32] span=from_string:16:19 */;
+  %20 = sigmoid(%7) /* ty=Tensor[(4), float32] span=from_string:29:21 */;
+  %21 = trunc(%20) /* ty=Tensor[(4), float32] span=from_string:19:17 */;
+  %22 = trunc(%21) /* ty=Tensor[(4), float32] span=from_string:20:16 */;
+  %23 = tanh(%22) /* ty=Tensor[(4), float32] span=from_string:21:20 */;
+  %24 = nn.relu(%12) /* ty=Tensor[(4), float32] span=from_string:23:20 */;
+  %25 = negative(%24) /* ty=Tensor[(4), float32] span=from_string:24:19 */;
+  %26 = reshape(%25, newshape=[4, 1, 1]) /* ty=Tensor[(4, 1, 1), float32] span=from_string:25:20 */;
+  %27 = nn.prelu(%26, %px1) /* ty=Tensor[(4, 1, 1), float32] span=from_string:26:30 */;
+  %28 = nn.instance_norm(%27, %px2, %px3) /* ty=Tensor[(4, 1, 1), float32] span=from_string:27:17 */;
+  %29 = trunc(%28) /* ty=Tensor[(4, 1, 1), float32] span=from_string:28:25 */;
+  %30 = transpose(%20, axes=[0]) /* ty=Tensor[(4), float32] span=from_string:30:16 */;
+  %31 = tanh(%30) /* ty=Tensor[(4), float32] span=from_string:31:15 */;
+  %32 = exp(%31) /* ty=Tensor[(4), float32] span=from_string:32:16 */;
+  %33 = sigmoid(%19) /* ty=Tensor[(4), float32] span=from_string:33:6 */;
+  %34 = negative(%23) /* ty=Tensor[(4), float32] span=from_string:33:11 */;
+  %35 = nn.avg_pool1d(%29, pool_size=[3], padding=[0, 2], ceil_mode=True) /* ty=Tensor[(4, 1, 1), float32] span=from_string:33:16 */;
+  %36 = tanh(%32) /* ty=Tensor[(4), float32] span=from_string:33:21 */;
+  (%33, %34, %35, %36) /* ty=(Tensor[(4), float32], Tensor[(4), float32], Tensor[(4, 1, 1), float32], Tensor[(4), float32]) span=from_string:3:5 */
+}
