@@ -112,7 +112,7 @@ This method is implemented following [Guo et al.](https://ieeexplore.ieee.org/do
 The utilities for searching and tracing method can be reused, e.g., mutate_utils.py and fuzzer.py. 
 
 What is required for new DL compilers are to update:
-* $build$_$workload$ : function in base_utils.py to compile models and build executable files.
-* $run$_$mod$ : function in base_utils.py to run executable files.
+* build_workload : function in base_utils.py to compile models and build executable files.
+* run_mod : function in base_utils.py to run executable files.
 * src/pass : passes' name in the DL compiler.
 * src/op : unique operators of the DL compiler.
