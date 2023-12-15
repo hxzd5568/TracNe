@@ -26,5 +26,8 @@ for caseid in caseids:
     print(dump_path)
     corrector = Passcheckor(case_path,caseid)
     corrector.isolate()
+    corrector.ispass('SimplifyExpr')
+    corrector.ispass('FoldScaleAxis')
+    # corrector.isthepass()
     # corrector.isolatef()
     # corrector.isdiabled()

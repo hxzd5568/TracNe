@@ -117,11 +117,24 @@ class Passcheckor:
                     candidate = list(set(passes)-set(temp))
                     passes = temp
                     bisect(mod, passes, candidate)
-
         temp = sample(self.passes,int(len(self.passes)/2))
         candidate = list(set(self.passes)-set(temp))
         passes = temp
         bisect(self.mod, passes, candidate)
+    def isthepass(self):
+        for p in self.passes:
+            self.ispass(p)
+    def ispass(self,passs):
+        cal2 = Calculate_error(mod=self.mod)
+        path_params = os.path.join(self.case_path, 'inputs.npz')
+        with np.load(path_params) as f:
+                loaded_params = dict(f.items())
+        error = cal2.test_consistent(isolatepass = [passs],inputs= loaded_params)
+        if error ==0:
+            print(error,'yes',passs)
+        else :
+            print(error,'not',passs)
+
     def defuse_mod(self, mod):
         seq = tvm.transform.Sequential(
             [
