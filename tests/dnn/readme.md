@@ -27,3 +27,6 @@ python test_fuzztorch.py ./dnn/out/model
 ```
 This script supports searching numerical errors caused by framework differences and optimizations.
 Users can choose to detect framework errors by setting $fuzzframe$ True. The default targets optimization errors. 
+
+## Dataset for YOLOv8
+[Download ImageNet 2012 dataset](https://www.image-net.org/challenges/LSVRC/2012/index.php)
