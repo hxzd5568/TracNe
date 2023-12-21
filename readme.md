@@ -2,7 +2,7 @@
 
 ## Introduction
 
-To diagnose compiler-introduced numerical errors in NN models, we introduce a automated approach TracNe, which consists of two tasks: detecting and tracing DLC-related numerical errors in a given NN model, a valid input range and specific compilation options. The results on two benchmarks show that TracNe is helpful in locating erroneous code and passes for both DL compiler users and developers. It can serve as a unit test for ensuring the model's robustness.
+To diagnose compiler-introduced numerical errors in NN models, we introduce an automated approach TracNe, which consists of two tasks: detecting and tracing DLC-related numerical errors in a given NN model, a valid input range and specific compilation options. The results on two benchmarks show that TracNe is helpful in locating erroneous code and passes for both DL compiler users and developers. It can serve as a unit test for ensuring the model's robustness.
 
 ## Supported Table
 | Frontend Models |     ONNX |PyTorch   |   TensorFlow2    |
@@ -33,8 +33,14 @@ TracNe is written in Python. Run `pip install -r requirements.txt` to get python
 * TVM should be built in debugging mode. 
   * Download tvm code of version 0.12.dev0 at least.
   * In config.cmake set the USE_PROFILER flag to ON.
-  * [Install tvm from source](https://tvm.apache.org/docs/install/from_source.html#developers-get-source-from-github)
+  * [Build tvm from source](https://tvm.apache.org/docs/install/from_source.html#developers-get-source-from-github)
   
+
+## Preparing Models and Dataset
+
+One benchmark has been prepared in the tests/out including 60 general NN models.
+
+Industiral models can be downloaded following tests/dnn/readme.md.
 
 ## Usage
 
@@ -47,7 +53,7 @@ python test_fuzzer.py  model_dir --low 0 --high 1 --optlevel 5
 
 The tested model should be placed in `out/model_dir`. After running the python script, the erroneous input triggering maximal errors will be stored in this directory. Augments low and high are the constraints for the input range. Users can control isolation granularity by $granularity$. Default number 64 is enough for error localization. It should be better than 4. 
 
-If the model is secure under the selected compilation option and input range, the errors found by the process are zero or less than the tolerance. Otherwise, the model are suspectable to the compilers' optimization.
+If the model is secure under the selected compilation option and input range, the errors found by the process are zero or less than the tolerance. Otherwise, the model is suspectable to the compilers' optimization.
 
 
 ### Error tracing and isolating
@@ -56,7 +62,7 @@ If the model is secure under the selected compilation option and input range, th
 python test_replay.py  model_dir
 ```
 
-It reproduces the errors by running optimized and un-optimized executable models under searched input. Meanwhile, the process stores concrete results of each funciton of the models.
+It reproduces the errors by running optimized and un-optimized executable models under searched input. Meanwhile, the process stores concrete results of each function of the models.
 
 ```shell
 python test_traceerror.py  model_dir
@@ -68,13 +74,13 @@ It matches corresponding functions between symbolic optimized and up-optimized m
 python test_propainfo.py  model_dir
 ```
 
-It backtrack the error-accumulation changes along the calculation graph. For each discrepancy output, it generates a error-accumulation graph from which the generation and amplification of the errors can be clearly understood. If an error arise in function A, then developers can know how A are optimized and transformed when compliation from trace.json.
+It backtracks the error-accumulation changes along the calculation graph. For each discrepancy output, it generates an error-accumulation graph from which the generation and amplification of the errors can be clearly understood. If an error arises in function A, then developers can know how A are optimized and transformed when compilation from trace.json.
 
 ```shell
 python test_pass.py  model_dir
 ```
 
-This process isolates optimization pass that incurs the numerical errors. Users can diable it to ensure the security and robustness of the model.
+This process isolates optimization pass that incurs the numerical errors. Users can disable it to ensure the security and robustness of the model.
 
 ### Pipeline
 
@@ -109,9 +115,9 @@ This method is implemented following [Guo et al.](https://ieeexplore.ieee.org/do
 
 ## Support New DL Compilers
 
-The utilities for searching and tracing method can be reused, e.g., mutate_utils.py and fuzzer.py. 
+The utilities for searching and tracing methods can be reused, e.g., mutate_utils.py and fuzzer.py. 
 
-What is required for new DL compilers are to update:
+What is required for new DL compilers is to update the following:
 * build_workload : function in base_utils.py to compile models and build executable files.
 * run_mod : function in base_utils.py to run executable files.
 * src/pass : passes' name in the DL compiler.
