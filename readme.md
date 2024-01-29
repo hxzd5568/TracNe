@@ -3,7 +3,9 @@
 ## Introduction
 
 To diagnose compiler-introduced numerical errors in NN models, we introduce an automated approach TracNe, which consists of two tasks: detecting and tracing DLC-related numerical errors in a given NN model, a valid input range and specific compilation options. The results on two benchmarks show that TracNe is helpful in locating erroneous code and passes for both DL compiler users and developers. It can serve as a unit test for ensuring the model's robustness.
-
+![img](./intro.png)
+## Demo
+![img](./demo.png)
 ## Supported Table
 | Frontend Models |     ONNX |PyTorch   |   TensorFlow2    |
 | ------------ | ------------------------------------ | ----------------------------------------------- | ---------------------------------------------- |

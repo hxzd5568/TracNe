@@ -3,8 +3,6 @@
 only need a tempdir to analyse
 config={"relay.FuseOps.max_depth": max_fused_ops
 
-# cast don't impact the fuse. So we can insert it to enhance precision.
-Example of trace two different executing graphs:
 L1:
 
 new_x____topo-index:0____output-num:0 (4, 3)
@@ -41,7 +39,7 @@ struct errormessage:{error,[output1,output5],node-name(of x),fix-method}
 
 import re
 import tvm
-from tvm import relay, runtime
+from tvm import relay, runtime, te
 import os
 import numpy as np
 import queue
@@ -91,27 +89,36 @@ class Errormessage:
         self.node_name_hint = node_name_hint
         self.opindex = opindex
         self.hash = hash
+        self.layouts = ['','']
 
 
 class Trace_item(Errormessage):
-    def __init__(self,  topoindex: int, pre_topoindex: List[int],  errormessage=Errormessage()):
+    def __init__(self,  namenode, topoindex: int, pre_topoindex: List[int],  errormessage=Errormessage()):
+        self.nodename = namenode
         self.topoindex = topoindex
         self.pre_topoindex = pre_topoindex.copy()
         self.errormessage = errormessage
 
 class Actualnodeinfo:
-    def __init__(self, nodeindex: int, t_order:int, coding:np.uint64, shape:List[int],tpnum:int,\
-                   params_keys: List[str],):#params: List[np.ndarray]
+    def __init__(self, nodeindex: int, t_order:int, coding:np.uint64, shape:List[int],tpnum:int,
+                 layout :str,
+                 params_keys: List[str], hash='',):#params: List[np.ndarray]
         self.nodeindex = nodeindex
         self.torder = t_order
         self.coding = coding
+        self.hash = hash
         self.shape = shape
         self.tpnum = tpnum
+        self.layout = layout
         self.params_keys = params_keys.copy()  # many outputs
 
 class Trace_error():
     def __init__(self, case_path) :
         self.case_path = case_path
+        if 'dnn' in self.case_path:
+            self.dnn = True
+        else :
+            self.dnn = False
         self.opt_root = self.case_path+'/L5/'
         self.unopt_root = self.case_path+'/L1/'
         with open(f'{self.case_path}/code.txt', 'r') as f:
@@ -129,9 +136,10 @@ class Trace_error():
     # add a new fix attribute
     # #if prenode is reshape, and there are more than one reshape node, then it may find incorrect reshape
     # because the debug info is not clear for reshape_nop
-    def get_topo_structure(self,graph_json_path: str, topo_name_index: Dict[str, int]) -> List[Trace_item]:
+    def get_topo_structure(self, graph_json_path: str, topo_name_index: Dict[str, int]) -> List[Trace_item]:
+
         # graph node order is consistent with nature number order
-        trace_messages: Dict[int:Trace_item] = dict()
+        trace_messages: Dict[int,Trace_item] = dict()
         with open(graph_json_path, 'r') as gfile:
             gdata = json.load(gfile)
         self.kerneldict = gdata
@@ -140,13 +148,14 @@ class Trace_error():
             node = gdata['nodes'][i]
             index = i #topo_name_index[node['name'].rstrip('_')]
             if node['op'] == 'param':  # local params also does not have inputs
-                trace_messages[index] = Trace_item(index,[-1],
+                trace_messages[index] = Trace_item(node['name'],index,[-1],
                                                  Errormessage().__dict__).__dict__
             else:
                 hash = node["attrs"]['hash']
-                trace_messages[index] = Trace_item(index, [topo_name_index[i.rstrip('_')] for i in
+                trace_messages[index] = Trace_item(node['name'],index, [topo_name_index[i.rstrip('_')] for i in
                                                 node['inputs']],# ! may need reshape_nop handler
                                                  Errormessage(hash=hash).__dict__).__dict__
+                # self.hash2optindex[hash ]= index
         return trace_messages
 
 
@@ -165,7 +174,7 @@ class Trace_error():
         #print(str)
         return str
     def handle_strings(self, funcname_all: str):
-        print(':'*10)
+        # print(':'*10)
         # special name + regular name + from_kernel_name(when ops_number>9)
         def get_hash_from_name(funcname):
             nodes = self.kerneldict['nodes']
@@ -197,8 +206,28 @@ class Trace_error():
             ops = re.findall(pat2,text,flags=re.S|re.M)
             ops = len(ops)
             return ops
+        def getlayout_from_kernel(text):
+            pat = r'(?P<value>\/\*.*?\*\/)'
+            text = re.sub(pat,'',text,count=0,flags=re.S|re.M)
+            if 'out_layout' in text and 'out_layout=""' not in text:
+                pat2 = r'out_layout="(.*?)"'
+                layout = re.search(pat2,text,flags=re.S|re.M).group(1)
+                # print(re.search(pat2,text,flags=re.S|re.M).group(1))
+                # exit()
+            elif 'data_layout' in text and 'data_layout=""' not in text:
+                pat2 = r'data_layout="(.*?)"'
+                layout = re.search(pat2,text,flags=re.S|re.M).group(1)
+            else:
+                pat2 = r', layout="(.*?)"'
+                layout = re.search(pat2,text,flags=re.S|re.M)
+                if layout is not None:
+                    layout = layout.group(1)
+                else:
+                    layout = ''
+            return layout
+
         funcname = funcname_all.split('____')[0]
-        print(funcname)
+        # print(funcname)
         lendefault = len('tvmgen_default_fused_')
         current_name = funcname[lendefault:].rstrip(string.digits).rstrip('_')
         while(current_name.split('_')[-1].isnumeric()):
@@ -210,12 +239,12 @@ class Trace_error():
         ops = []        # record ops along kernel order
         def call_kernel_analysis():
             hash = get_hash_from_name(funcname)
-            print(hash)
             kernelstr = get_modstr_from_hash(hash)
             ops = getops_from_kernel(kernelstr)
             constnum = getconst_from_kernel(kernelstr)
-            return ops,constnum
-        ops, currtpnum = call_kernel_analysis()
+            layout = getlayout_from_kernel(kernelstr)
+            return hash, ops,constnum, layout
+        signature, ops, currtpnum, layout = call_kernel_analysis()
         op_numbers = len(ops)
         for op in ops:
             if op in self.opname:
@@ -223,9 +252,9 @@ class Trace_error():
             else:
                 print('can not handle op:',op)
                 exit()
-        print(op_numbers, index, coding)
-        print(ops)
-        return op_numbers, index, coding, currtpnum
+        # print(op_numbers, index, coding)
+        # print(ops)
+        return signature, op_numbers, index, coding, currtpnum, layout
 
 
     def reorderfunc_withindex(self, funcname_alls) -> List[str]:
@@ -242,10 +271,16 @@ class Trace_error():
             if key == index:
                 shape = node['shape'].copy()
                 return shape
-        print(key,' no shape')
+        # print(key,' no shape')
         exit()
-
-    def get_actual_index_param(self, params: Dict[str, np.ndarray]) -> Dict[int,Actualnodeinfo]:
+    def key2prekeys(self, tracem:Dict[int,Trace_item]):
+        key2pkdict = dict()
+        for item in tracem.values():
+            key2pkdict[item['nodename'].rstrip('_')] = item['pre_topoindex']
+        return key2pkdict
+    
+    def get_actual_index_param(self, params: Dict[str, np.ndarray]\
+                               ,) -> Dict[int,Actualnodeinfo]:
         actualparams = dict()
         keys = self.reorderfunc_withindex(params.keys())
         nodeindex = 0
@@ -254,79 +289,34 @@ class Trace_error():
         order = 0
         basecoding = np.uint64(0)
         tpnum = 0  # temp time node has how many global params
+        codingdict = dict()
         for key in keys:
         # distinguish placehold and function node
             if ('tvmgen_default' in key or 'reshape_nop' in key):
-                addops, nodeindex , coding, currtpnum = self.handle_strings(key)
+                # preccessors =  self.key2pkdict[key.split('____')[0].split(':')[0]]
+                hash, addops, nodeindex , coding, currtpnum, layout = self.handle_strings(key)
                 opindex = baseindex + addops - 1
                 baseindex += addops
-                basecoding += coding
+                basecoding = basecoding + np.uint64(coding)
+                # codingdict[nodeindex]= basecoding
                 tpnum += currtpnum
-
             else:
                 nodeindex = int(key.split('____')[1].split(':')[1])
                 opindex = baseindex + 1 - 1
                 baseindex +=1
                 tpnum += 1
+                layout = ''
+                hash = ''
             # get shape
             shape = self.get_shape(key.split('____')[0].split(':')[0])
             # populate
             if order not in actualparams.keys():
-                actualparams[order] = Actualnodeinfo(nodeindex,opindex,basecoding,shape,tpnum, [key])
+                actualparams[order] = Actualnodeinfo( nodeindex,opindex,basecoding,shape,tpnum, layout, [key],hash)
             else:
                 # actualparams[order].params.append(params[key])
                 actualparams[order].params_keys.append(key)
             order += 1
         return actualparams
-
-    # helper function
-    def get_node_name(self):
-        params_path = os.path.join(self.opt_root,
-                                '_tvmdbg_device_CPU_0/output_tensors.params')
-        params: Dict[str, np.array] = relay.load_param_dict(bytearray(open(
-                params_path, "rb").read()))
-        keys = self.reorderfunc_withindex(params.keys())
-        unnoptparams_path = os.path.join(self.unopt_root,
-                                        '_tvmdbg_device_CPU_0/output_tensors.params')
-        params1: Dict[str, int] = relay.load_param_dict(bytearray(open(
-            unnoptparams_path, "rb").read()))
-        keys2 = self.reorderfunc_withindex(params1.keys())
-        fixportpath = os.path.join(self.case_path, 'node_names')
-        with open(fixportpath,'w') as fp:
-                fp.write('\n\n********opt5'+'*'*50+'\n\n')
-                print(self.optprim_mod,file=fp)
-                fp.write('\n\n********opt1'+'*'*50+'\n\n')
-                print(self.unoptprim_mod,file=fp)
-        graph_json_path = os.path.join(self.opt_root,
-                            '_tvmdbg_device_CPU_0/_tvmdbg_graph_dump.json')
-        with open(graph_json_path, 'r') as gfile:
-            gdata = json.load(gfile)
-        self.kerneldict = gdata
-        optparams = self.get_actual_index_param(params)
-
-        names = [(i,key.split('____')[0].split(':')[0]) for i,key in enumerate(keys)]
-        graph_json_path = os.path.join(self.unopt_root,
-                    '_tvmdbg_device_CPU_0/_tvmdbg_graph_dump.json')
-        with open(graph_json_path, 'r') as gfile:
-            gdata = json.load(gfile)
-        self.kerneldict = gdata
-        unoptparams = self.get_actual_index_param(params1)
-        names2 = [(i,key.split('____')[0].split(':')[0]) for i,key in enumerate(keys2)]
-        with open(fixportpath,'a') as fp:
-            fp.write('\n\n********opt5'+'*'*50+'\n\n')
-            for name in names:
-                print(name,file=fp)
-            print('op topo:', [(key, value.nodeindex)
-                for key, value in optparams.items()],file = fp)
-            fp.write('\n\n********opt1'+'*'*50+'\n\n')
-            for name in names2:
-                print(name,file=fp)
-            print('op unopt_topo:', [(key, value.nodeindex)
-                for key, value in unoptparams.items()],file = fp)
-        del params
-        del params1
-
-        return
 
     def locate_naninf(self,modstr:str):
         print('enter locating')
@@ -386,6 +376,13 @@ class Trace_error():
         relative_error = np.average( d \
                 / (np.abs(y_true).astype(np.float64) + 1e-8) * np.not_equal(y_true, 0)\
                  + np.equal(y_true, 0)* d )
+        if self.dnn is None:
+            relative_error = np.average( d \
+                    / (np.abs(y_true).astype(np.float64) + 1e-8) * np.not_equal(y_true, 0)\
+                        + np.equal(y_true, 0)* d )
+        else:
+            relative_error = np.average( d \
+                    / (np.abs(y_true).astype(np.float64) + 1e-8) * np.abs(y_true) / np.mean(np.abs(y_true)))
         return relative_error
 
     def encode_obj(self,obj):
@@ -395,16 +392,53 @@ class Trace_error():
         return obj_dict
 
     # look op params' key
-
-
     def lookup_keys(self,path):
         data = relay.load_param_dict(bytearray(open(path, "rb").read()))
         for k, v in data.items():
             tvm_array = v.numpy()
             print(k, tvm_array.shape)
-
-
+    def get_equivalent_character(self):
+        # get all unique float-ps
+        s1 = str(self.optprim_mod)
+        s2 = str(self.unoptprim_mod)
+        kfps = re.findall(r'\d+\.*\d+f',s1)
+        vfps = re.findall(r'\d+\.*\d+f',s2)
+        fps = list(set(kfps) & set(vfps))
+        self.eqhash = dict()
+        for fp in fps:
+            a = re.search(f'{fp[::-1]}.*?"([0-9a-f]*)"=hsah',s1[::-1],re.S|re.M).group(1)[::-1]
+            b = re.search(f'{fp[::-1]}.*?"([0-9a-f]*)"=hsah',s2[::-1],re.S|re.M).group(1)[::-1]
+            self.eqhash[a]=b                    # find corresponding hash {opthash-> unopthash}
+    def get_eqnodeindex(self, opttracem:Dict[int, Trace_item], \
+                       unopttracem:Dict[int, Trace_item]):
+        # prepare hash2nodeindex
+        hash2optindex = dict()
+        hash2unoptindex=dict()
+        for k, v in opttracem.items():
+            hash2optindex[v.hash]  =  k
+        for k, v in unopttracem.items():
+            hash2unoptindex[v.hash] = k
+        print('5',hash2optindex)
+        print('1',hash2unoptindex)
+        # get equal index
+        list1 = []
+        self.eqnodeindex = dict()
+        for hash5, hash1 in self.eqhash.items():
+            index5 = hash2optindex[hash5]
+            index1 = hash2unoptindex[hash1]
+            if index1 not in list1:
+                self.eqnodeindex[index5]= index1
+            else:
+                tmp = dict(zip(self.eqnodeindex.values(), self.eqnodeindex.keys()))
+                if index1 in self.eqnodeindex.keys():
+                    del self.eqnodeindex[tmp[index1]]
+            list1.append(index1)
+        # print(self.eqnodeindex)
     def get_trace_message(self,report:Queue=None) -> str:
+        # first step
+        self.get_equivalent_character()
+
+        # second, prepare actualnode and hash
         params_path = os.path.join(self.opt_root,
                                 '_tvmdbg_device_CPU_0/output_tensors.params')
         graph_json_path = os.path.join(self.opt_root,
@@ -413,7 +447,7 @@ class Trace_error():
                 params_path, "rb").read()))
         keys = self.reorderfunc_withindex(params.keys())
         names = [(i,key.split('____')[0].split(':')[0]) for i,key in enumerate(keys)]
-        print('opt5 k:',names)
+        # print('opt5 k:',names)
         # params check
         # path_params = os.path.join(self.case_path, 'inputs.npz')
         # with np.load(path_params) as f:
@@ -426,14 +460,17 @@ class Trace_error():
         #             tvm.testing.assert_allclose(v,params[ck].numpy() , rtol=1e-8, atol=1e-8)
         topo_name_index = self.get_topo_name_index(params.keys())
         index_topo_name = dict([val, key] for key, val in topo_name_index.items())
-        trace_messages: Dict[int:Trace_item] = self.get_topo_structure(
+        trace_messages: Dict[int,Trace_item] = self.get_topo_structure(
             graph_json_path, topo_name_index)
         # populate_errormessages(trace_messages, params)
-        optparams = self.get_actual_index_param(params)
-        print('op topo:', [(value.torder, value.nodeindex)
-            for key, value in optparams.items()])
-        for key, value in optparams.items():
-            print('op opt_topo:', 'key:',key,value.__dict__)
+        # self.key2pkdict =  self.key2prekeys(trace_messages)
+        # get precessor
+        # self.precessordict = getprecessor(graph_json_path)
+        optparams = self.get_actual_index_param(params, )
+        # print('op topo:', [(value.torder, value.nodeindex)
+        # for key, value in optparams.items()])
+
+        # unopt
         graph_json_path = os.path.join(self.unopt_root,
                             '_tvmdbg_device_CPU_0/_tvmdbg_graph_dump.json')
         with open(graph_json_path, 'r') as gfile:
@@ -442,21 +479,51 @@ class Trace_error():
                             '_tvmdbg_device_CPU_0/output_tensors.params')
         params1: Dict[str, int] = relay.load_param_dict(bytearray(open(
             unnoptparams_path, "rb").read()))
+        # topo_name_index1 = self.get_topo_name_index(params1.keys())
+        # trace_messages1: Dict[int,Trace_item] = self.get_topo_structure(
+        #     graph_json_path, topo_name_index1)
+        # self.key2pkdict =  self.key2prekeys(trace_messages1)
         unoptparams = self.get_actual_index_param(params1)
-
         keys = self.reorderfunc_withindex(params1.keys())
-        names = [(i,key.split('____')[0].split(':')[0]) for i,key in enumerate(keys)]
-        print('opt1 k:',names)
+        # names = [(i,key.split('____')[0].split(':')[0]) for i,key in enumerate(keys)]
+        # print('opt1 k:',names)
         self.pararms5 = params
         del params
         self.pararms1 = params1
         del params1
-        for key, value in unoptparams.items():
-            print('op unopt_topo:','key:',key, value.__dict__)
         diff = 0
         self.matchinfos = []
+        # get sign nodes
+        self.get_eqnodeindex(optparams,unoptparams)
+
+        # match
         def imprecsionmatch(optorder,optnode, unoptparams):
             global comparebaseorder
+            # sign points
+            if optorder in self.eqnodeindex.keys():
+                uk = self.eqnodeindex[optorder]
+                shape1= unoptparams[uk].shape
+                shape5 =optnode.shape
+                if  np.prod(shape1)==np.prod(shape5):# np.prod(ushape)!=np.prod(shape) / ushape!=shape
+                    self.matchinfos.append(Matchinfo(optorder, uk))
+                    comparebaseorder = uk+1
+                    # synchronize encoding case1: opt< unopt
+                    optcode = optnode.coding
+                    unoptcode = unoptparams[uk].coding
+                    delta = 0
+                    if optcode < unoptcode:
+                        delta = unoptcode - optcode
+                    elif optcode > unoptcode:
+                        # handle unoptparams
+                        tdelta = optcode - unoptcode
+                        tkey = uk
+                        while(tkey in unoptparams.keys()):
+                            unoptparams[tkey].coding += np.uint64(tdelta)
+                            tkey += 1
+                    else: 
+                        pass
+                    print(optorder,uk,'******')
+                    return uk, True, delta
             for uk, unoptnode in list(unoptparams.items())[comparebaseorder:]:
                 unoptcoding =  unoptnode.coding
                 optcoding = optnode.coding
@@ -477,7 +544,7 @@ class Trace_error():
                     else float(unoptcoding-optcoding)
                 # get tolerance
                 if self.qnn:
-                    tolerance = 1 + 5* abs(leng)/10.0  # may modify  #10
+                    tolerance = 2 + 1* abs(leng)/20.0  # may modify  #5
                 else:
                     tolerance = 1 + abs(leng)/10.0  # may modify  #10
                 # print('tolerance',tolerance)
@@ -485,63 +552,107 @@ class Trace_error():
                     # shape compare
                     ushape = unoptnode.shape
                     shape =optnode.shape
-                    if  np.prod(ushape)!=np.prod(shape):# np.cumprod(ushape)
+                    if   np.prod(ushape)!=np.prod(shape):# np.prod(ushape)!=np.prod(shape) / ushape!=shape
                         continue
                     if uk+1== len(list(unoptparams.items())):
                         self.matchinfos.append(Matchinfo(optorder, uk))
                         comparebaseorder = uk+1
-                        return uk, True
-                    # next diff check:
-                    unoptnode2 = unoptparams[uk+1]
-                    unoptcoding =  unoptnode2.coding
-                    optcoding = optnode.coding
-                    utpnums = unoptnode2.tpnum
-                    tpnums = optnode.tpnum
-                    uleng = unoptnode2.torder
-                    leng = optnode.torder
-                    # modify coding amendment
-                    if self.qnn:
-                        pass
-                    else:
-                        if  tpnums <utpnums:
-                            optcoding += np.uint64((utpnums-tpnums)*2)
+                        return uk, True, 0
+                    if self.qnn:# next diff check:
+                        unoptnode2 = unoptparams[uk+1]
+                        unoptcoding =  unoptnode2.coding
+                        optcoding = optnode.coding
+                        utpnums = unoptnode2.tpnum
+                        tpnums = optnode.tpnum
+                        uleng = unoptnode2.torder
+                        leng = optnode.torder
+                        # modify coding amendment
+                        if self.qnn:
+                            pass
                         else:
-                            unoptcoding += np.uint64((tpnums-utpnums)*2)
-                    # get diff
-                    diff2 = float(optcoding-unoptcoding) if optcoding> unoptcoding \
-                        else float(unoptcoding-optcoding)
-                    ushape2 = unoptnode2.shape
-                    if diff2<diff and (ushape2== ushape or np.prod(ushape)==np.prod(ushape2)):
-                        self.matchinfos.append(Matchinfo(optorder, uk+1))
-                        comparebaseorder = uk+2
-                        return uk+1,True
+                            if  tpnums <utpnums:
+                                optcoding += np.uint64((utpnums-tpnums)*2)
+                            else:
+                                unoptcoding += np.uint64((tpnums-utpnums)*2)
+                        # get diff
+                        diff2 = float(optcoding-unoptcoding) if optcoding> unoptcoding \
+                            else float(unoptcoding-optcoding)
+                        ushape2 = unoptnode2.shape
+                        if diff2<diff and (np.prod(ushape)==np.prod(ushape2) ):#np.prod(ushape)==np.prod(ushape2) / ushape2== ushape or ushape==ushape2
+                            self.matchinfos.append(Matchinfo(optorder, uk+1))
+                            comparebaseorder = uk+2
+                            return uk+1,True, 0
+                        else:
+                            self.matchinfos.append(Matchinfo(optorder, uk))
+                            comparebaseorder = uk+1
+                            return uk, True, 0
                     else:
                         self.matchinfos.append(Matchinfo(optorder, uk))
                         comparebaseorder = uk+1
-                        return uk, True
-            return -1, False
-
-
+                        return uk, True, 0
+            return -1, False, 0
+        def clayout(a_np, k):
+            a,b,c,d = a_np.shape
+            Dtype = str(a_np.dtype)
+            input_tensor = te.placeholder((a,b,c,d), dtype=Dtype, name='input')
+            C = te.compute(
+                (a, int(b/k), c, d, k),
+                lambda n, c, h, w, c3: input_tensor[n, c * k + c3, h, w],
+                name='output'
+            )
+            s = te.create_schedule(C.op)
+            target = 'llvm'
+            func = tvm.build(s, [input_tensor, C], target=target)
+            b_np = np.zeros(shape=(a, int(b/k), c,d,k)).astype(Dtype)
+            a_tvm = tvm.nd.array(a_np, )
+            b_tvm = tvm.nd.array(b_np, )
+            func(a_tvm, b_tvm)
+            b_result = b_tvm.asnumpy()
+            return b_result
+        def metric(outs1, outs5,l1,l5):
+            diff = 0.
+            outshape1 = outs1[0].numpy().shape
+            outshape2 = outs5[0].numpy().shape
+            if str(outshape1) == str(outshape2) or str(outshape1) in str(outshape2):
+                for ro, o in zip(outs1, outs5):
+                    diff = max(diff, self.MSE(ro.numpy().flatten(), o.numpy().flatten()))
+            else:
+                if (l1=='' or l1=='NCHW') and (re.match(r'NCHW\dc',l5) is not None or l5=='NCHWc'):
+                    diff = 0
+                    optp = outs5[0].numpy()
+                    opt_ct = clayout(outs1[0].numpy(), outshape2[-1])
+                    diff = self.MSE(opt_ct.flatten() ,optp.flatten())    # diff = self.MSE(opt_ct,optp)
+                elif np.size(outshape1)==4 and np.size(outshape2)==5 and  \
+                    (outshape1[0]==outshape2[0] and outshape1[2]==outshape2[2] and outshape1[3]==outshape2[3]):
+                    diff = 0
+                    optp = outs5[0].numpy()
+                    opt_ct = clayout(outs1[0].numpy(), outshape2[-1])
+                    diff = self.MSE(opt_ct.flatten() ,optp.flatten())    # diff = self.MSE(opt_ct,optp)
+                else:
+                    print('undefined comparision')
+                    diff = -1
+                print(diff)
+            return diff
         for key, indexparams in optparams.items():
+            trace_messages[indexparams.nodeindex]['errormessage']['node_name_hint'] = \
+                index_topo_name[indexparams.nodeindex]
             outs5 = [self.pararms5[i] for i in indexparams.params_keys]
             if key+1<len(optparams.keys()):
                 if indexparams.nodeindex+1 in index_topo_name.keys() and \
                     'fused_layout_transform' in index_topo_name[indexparams.nodeindex+1] \
                     and optparams[key].coding==optparams[key+1].coding:#optparams[key+1].:
                     continue
-            unopt_ordernum, flag = imprecsionmatch(key,optparams[key], unoptparams)  # fuzzy match
+            unopt_ordernum, flag, delta = imprecsionmatch(key,optparams[key], unoptparams)  # fuzzy match
+            if delta != 0:
+                tkey = key
+                while(tkey in optparams.keys()):
+                    optparams[tkey].coding += np.uint64(delta)
+                    tkey +=1
             if flag==False:
                 continue
             print('match',key,unopt_ordernum,flag)
             outs1 = [self.pararms1[i] for i in unoptparams[unopt_ordernum].params_keys]
-            diff = 0
-            # # if layout_transform make shape diff, then back opt out once.
-            # if outs1[0].numpy().shape != outs5[0].numpy().shape and 'layout_transform' in index_topo_name[indexparams.nodeindex] and\
-            #     optparams[key].coding==optparams[key-1].coding:
-            #     outs5 = [self.pararms5[i] for i in optparams[key-1].params_keys]
-            #     assert(outs1[0].numpy().shape != outs5[0].numpy().shape)
-            for ro, o in zip(outs1, outs5):
-                diff = max(diff, self.MSE(ro.numpy().flatten(), o.numpy().flatten()))
+            diff = metric(outs1, outs5,unoptparams[unopt_ordernum].layout,optparams[key].layout)
             # print(trace_messages.keys())
             trace_messages[indexparams.nodeindex]['errormessage']['error'] = float(diff)
             trace_messages[indexparams.nodeindex]['errormessage']['opindex'] = key
@@ -549,13 +660,17 @@ class Trace_error():
                 = unoptparams[unopt_ordernum].params_keys
             trace_messages[indexparams.nodeindex]['errormessage']['params_keys']['opt_params_keys']\
                 = indexparams.params_keys
-            if diff > 1e-10:
+            trace_messages[indexparams.nodeindex]['errormessage']['layouts'][0]\
+                = unoptparams[unopt_ordernum].layout
+            trace_messages[indexparams.nodeindex]['errormessage']['layouts'][1]\
+                = optparams[key].layout
+            if diff > 0:
                 trace_messages[indexparams.nodeindex]['errormessage']['params']['unopt_params']\
                     = [np.array2string(i.numpy()) for i in outs1]
                 trace_messages[indexparams.nodeindex]['errormessage']['params']['opt_params']\
                     = [np.array2string(i.numpy()) for i in outs5]
-            trace_messages[indexparams.nodeindex]['errormessage']['node_name_hint'] = \
-                index_topo_name[indexparams.nodeindex] if indexparams.nodeindex in index_topo_name.keys() else 'reshape_nop'
+            # trace_messages[indexparams.nodeindex]['errormessage']['node_name_hint'] = \
+            #     index_topo_name[indexparams.nodeindex] if indexparams.nodeindex in index_topo_name.keys() else 'reshape_nop'
         global comparebaseorder
         comparebaseorder = 0
         dump_path = os.path.join(self.case_path, 'trace.json')
@@ -566,4 +681,8 @@ class Trace_error():
             report.put({'trace stored in file:',dump_path})
         else:
             print('trace stored in file:',dump_path)
+        for key, value in optparams.items():
+            print('op opt_topo:', 'key:',key,value.__dict__)
+        for key, value in unoptparams.items():
+            print('op unopt_topo:','key:',key, value.__dict__)
         return dump_path

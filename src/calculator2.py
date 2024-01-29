@@ -215,7 +215,7 @@ class Calculate_error:
         self.gmod5 = GraphModule(self.factorymod5["default"](dev))
         main_fn = self.mod['main']
         for i in range(20):
-            if inputs is  None:
+            if inputs is None:
                 inputarr = self.generate_inputs(main_fn)
             else:
                 inputarr = inputs

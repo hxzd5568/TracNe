@@ -19,7 +19,7 @@ from threading import Thread
 import re
 import torch
 
-speed1 ,speed2,speed3, speed4= 2,3,1,16## for non quant model 6,24,1,40  is good configuration, for quant model, 2,2 1,16 is good
+speed1 ,speed2,speed3, speed4= 1,1,1,5## for non quant model 6,24,1,40  is good configuration, for quant model, 2,2 1,16 is good
 topk = 100
 langbatch = 2 #  {torch_transformer0: 10, oberts: 2, otheroberta:1}
 dictnums = 30520 #30521 for mask / 5e4 for qa
@@ -27,8 +27,8 @@ TensorDict = Dict[str, np.ndarray]
 target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
-# path-to-tvm/tests/python/frontend/onnx/test_forward.py
-# fuzztorch.py
+# /home/zichaox/tvm/tests/python/frontend/onnx/test_forward.py
+# /home/zichaox/tvm/Fuzzfp/introcase/src/fuzztorch.py
 import sys
 sys.path.append('../../..')
 from .onnx_utils import get_ort_out
@@ -58,7 +58,7 @@ class MyTakeStep:
        self.rng = np.random.default_rng()
    def __call__(self, x):
        s = self.stepsize
-       x[0] += self.rng.uniform(-2.*s, 2.*s)
+       x[0 ] += self.rng.uniform(-2.*s, 2.*s)
        x[1:] += self.rng.uniform(-s, s, x[1:].shape)
        return x
 # another method
@@ -124,8 +124,11 @@ class Log2_1(Module):
         def forward(self, *args):
             return torch.log2(args[0])
 class Fuzzer(Checkor):
-    def __init__(self,path:str,case_id:str,low:float=-5,high:float=5, params = None, fuzzmode:str ='MEGA',fuzzframe= None):
-        super().__init__(path=path,case_id=case_id,params=params,lowbound=low,highbound=high, )
+    def __init__(self,path:str,case_id:str,low:float=0,high:float=1, fuseopsmax=5,\
+                 params = None, fuzzmode:str ='MEGA',fuzzframe = False,optlevel=5):
+        super().__init__(path=path,case_id=case_id,params=params,lowbound=low,
+                         highbound=high, fuseopsmax=fuseopsmax,
+                         fuzzmode=fuzzmode,optlevel=optlevel)
         self.case_path = os.path.join(path+'/out', case_id)
         self.usedseed =[None]*20
         self.Maxfuzztrytimes = 50
@@ -903,7 +906,7 @@ class Fuzzer(Checkor):
         # with np.load(path_params) as f:
         #     loaded_params = dict(f.items())
         from .yolov8_utils import get_input
-        filepath = '/home/user/tvm/models/ils2012'
+        filepath = '/home/zichaox/tvm/models/ils2012'
         files = os.listdir(filepath)
         nums = 0.0
         zeropredict = 0.0
@@ -1037,8 +1040,9 @@ class Fuzzer(Checkor):
                         inputarr[self.tempkey] = np.reshape(arr, self.Input_size)
                     print('find accuracy bug')
                     path_params = os.path.join(self.case_path, 'inputs.npz')
-                    if self.frame is None:
+                    if self.frame is False:
                         np.savez(path_params, **inputarr)
+                        print(path_params)
             def fuzzfn(arr:np.array):# input:list of np factorymod1: tvm.runtime.Module,factorymod5: tvm.runtime.Module,
                 inputarr = dict()
                 if 'transformer' in self.case_path:
@@ -1295,7 +1299,7 @@ class Fuzzer(Checkor):
                 retf, retx = list(seeds.items())[0]
                 retf = float(retf)
                 t1 = time.time()
-                print(retf,'de using time',t1-t0)
+                print(retf, 'de using time',t1-t0)
                 # savearr(retx)
                 bretf, bretx = list(seeds.items())[0]
                 bretf = float(bretf)

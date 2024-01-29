@@ -27,28 +27,40 @@ import psutil
 #     info = p.memory_full_info()
 #     return info.uss / 1024. / 1024. / 1024.
 
-case_path = os.getcwd()
-case_path = './dnn/'
-args = sys.argv
+configargs = Namespace()
 
-if '/' in args[1]:
-    dump_path = args[1]
+def _parse_args():
+    global configargs
+    p = ArgumentParser()
+    p.add_argument('caseids', metavar='N', type=str, nargs='+',
+                    help='model ids')
+    p.add_argument( '--low', type=float, default=0.)
+    p.add_argument( '--high', type=float, default=1.)
+    p.add_argument( '--method', type=str, default='MEGA',choices=['DEMC', 'MCMC','MEGA'])
+    p.add_argument('--optlevel', type=int,  default=5)
+    p.add_argument('--granularity', type=int,  default=5)
+    # p.add_argument( '--name', type=str, help='such as --name 1')
+    configargs = p.parse_args()
+_parse_args()
+
+args1 = configargs.caseids
+if '/' in args1:
+    dump_path = args1
     flag =1
     case_path = dump_path.split('out')[0]
     caseid = dump_path.split('out')[1][1:]
     caseids = [caseid]
-elif '-' in args[1]:
-    l,r = int(args[1].split('-')[0]),\
-            int(args[1].split('-')[1])+1
-    caseids = [str(i) for i in range(l,r,1)]
 else:
-    caseids = args[1:]
+    print('Wrong input path. A valid path is "./tests/dnn/out/inceptionv3". ')
 
 
 for caseid in caseids:
-    dump_path = case_path+'/out/'+caseid
     print(dump_path)
-    fuzzer = Fuzzer(path =case_path,low=0,high=1,case_id=caseid,fuzzmode='MEGA',fuzzframe=False)
+    fuzzer = Fuzzer(path =case_path,case_id=caseid,
+                    low= configargs.low,high= configargs.high,
+                    fuzzmode=configargs.method, fuzzframe=False,
+                    optlevel=configargs.optlevel,
+                    fuseopsmax=configargs.granularity,)
     # fuzzer.replay_error()
     # for i in range(3):
     # fuzzer.fastv()
