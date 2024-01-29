@@ -16,7 +16,6 @@ https://github.com/apache/tvm/issues/15391
 https://github.com/apache/tvm/issues/15390
 https://github.com/apache/tvm/issues/13359
 https://github.com/apache/tvm/issues/7563
-https://github.com/apache/tvm/issues/3908
 https://github.com/apache/tvm/issues/16056 
 https://github.com/apache/tvm/issues/14729
 https://github.com/apache/tvm/issues/12734
