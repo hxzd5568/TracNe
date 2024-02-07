@@ -12,8 +12,9 @@ https://github.com/apache/tvm/issues/15395
 https://github.com/apache/tvm/issues/15394
 https://github.com/apache/tvm/issues/15393
 https://github.com/apache/tvm/issues/15392
-https://github.com/apache/tvm/issues/15391
-https://github.com/apache/tvm/issues/15390
+https://github.com/apache/tvm/issues/15284
+https://github.com/apache/tvm/issues/7678
+https://github.com/apache/tvm/issues/11696
 https://github.com/apache/tvm/issues/13359
 https://github.com/apache/tvm/issues/7563
 https://github.com/apache/tvm/issues/16056 
