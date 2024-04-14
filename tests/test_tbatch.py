@@ -62,18 +62,20 @@ else:
 import time
 t0 = time.time()
 for caseid in caseids:
-    case_path = '/home/zichaox/tvm/Fuzzfp/introcase/tests/dnn/'
-    dump_path = case_path+'/out/'+caseid
+    if caseid.isdigit():
+        dump_path = case_path+'/out/'+caseid
+    else:
+        dump_path = case_path+'/dnn/out/'+caseid
     print(dump_path)
     # if os.path.exists(dump_path+'/compiled_lib1.tar'):
     #     os.remove(dump_path+'/compiled_lib1.tar')
-    for file in ['test_fuzztorch.py']:# 'test_fuzzer.py', 'test_replay.py', 'test_traceerror.py', 'test_fix.py', 'test_prop.py'
+    for file in ['test_fuzzer.py', 'test_replay.py', 'test_traceerror.py', 'test_prop.py', 'test_pliner.py']:# 'test_fuzzer.py', 'test_replay.py', 'test_traceerror.py', 'test_fix.py', 'test_prop.py', 'test_pliner.py'
         cmd = ['python', file, caseid]
         try: #!! pack them
-            rcode = run(cmd, timeout=60*30)
+            rcode = run(cmd, timeout=180*4+30)
         except CalledProcessError:
             print(f'Error detected in initial check of case {case_id}.')
             keep_dir = True
         except TimeoutExpired:
             print(f'Case {case_id} timed out.')
-print('fix' ,time.time()-t0)
+# print('fix' ,time.time()-t0)

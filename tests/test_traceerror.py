@@ -33,7 +33,10 @@ else:
 import time
 t0 = time.time()
 for caseid in caseids:
-    dump_path = case_path+'/out/'+caseid
+    if caseid.isdigit():
+        dump_path = case_path+'/out/'+caseid
+    else:
+        dump_path = case_path+'/dnn/out/'+caseid
     print(dump_path)
     trace_error = Trace_error(dump_path)
     trace_error.get_trace_message()
@@ -42,4 +45,6 @@ for caseid in caseids:
     # except Exception as e:
     #     print(e.__class__.__name__, e)
     del trace_error
-print(time.time()-t0)
+    t1 = time.time()
+    print(caseid, 'using time' , t1-t0)
+    t0= t1

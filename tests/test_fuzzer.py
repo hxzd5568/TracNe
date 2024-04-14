@@ -57,7 +57,11 @@ def _parse_args():
 _parse_args()
 
 for caseid in configargs.caseids:
-    dump_path = case_path+'/out/'+caseid
+    if caseid.isdigit():
+        dump_path = case_path+'/out/'+caseid
+    else:
+        dump_path = case_path+'/dnn/out/'+caseid
+        case_path = case_path+'/dnn'
     print(dump_path)
     fuzzer = Fuzzer(path =case_path,case_id=caseid,
                     low= configargs.low,high= configargs.high,

@@ -46,7 +46,10 @@ else:
 
 
 for caseid in caseids:
-    dump_path = case_path+'/out/'+caseid
+    if caseid.isdigit():
+        dump_path = case_path+'/out/'+caseid
+    else:
+        dump_path = case_path+'/dnn/out/'+caseid
     print(dump_path)
     fuzzer = Fuzzer(path =case_path,low=0,high=1,case_id=caseid,fuzzmode='DEMC2',)
     # fuzzer.profile()

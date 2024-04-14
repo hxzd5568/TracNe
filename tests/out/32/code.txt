@@ -1,0 +1,12 @@
+#[version = "0.0.5"]
+def @main(%x0: Tensor[(20, 15), float32] /* ty=Tensor[(20, 15), float32] span=from_string:3:18 */, %x1: Tensor[(1), float32] /* ty=Tensor[(1), float32] span=from_string:7:23 */) -> (Tensor[(20, 1), float32],) {
+  %0 = reshape(%x0, newshape=[20, 15, 1]) /* ty=Tensor[(20, 15, 1), float32] span=from_string:4:18 */;
+  %1 = reshape(%0, newshape=[20, 15, 1]) /* ty=Tensor[(20, 15, 1), float32] span=from_string:5:14 */;
+  %2 = sum(%1, axis=[1]) /* ty=Tensor[(20, 1), float32] span=from_string:6:14 */;
+  %3 = abs(%2) /* ty=Tensor[(20, 1), float32] span=from_string:9:23 */;
+  %4 = nn.prelu(%3, %x1) /* ty=Tensor[(20, 1), float32] span=from_string:8:21 */;
+  %5 = divide(%4, %4) /* ty=Tensor[(20, 1), float32] span=from_string:9:19 */;
+  %6 = maximum(%5, %3) /* ty=Tensor[(20, 1), float32] span=from_string:10:15 */;
+  %7 = tanh(%6) /* ty=Tensor[(20, 1), float32] span=from_string:11:6 */;
+  (%7,) /* ty=(Tensor[(20, 1), float32],) span=from_string:3:5 */
+}

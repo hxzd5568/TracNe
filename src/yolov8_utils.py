@@ -18,7 +18,7 @@ def get_input(path=None):
     input = input.transpose(2,0,1)
     input = input.reshape(1,3,640,640).astype('uint8')
     return input
-def get_yolo_result(outputs:[np.array,np.array]):
+def get_yolo_result(outputs:[np.array, np.array]):
     output0 = outputs[0]
     output1 = outputs[1]
 

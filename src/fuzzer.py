@@ -24,7 +24,7 @@ TensorDict = Dict[str, np.ndarray]
 target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
-speed1, speed2, speed3, speed4 = 1, 14, 1, 6 # 5, 24, 2, 16 for traditional programs
+speed1, speed2, speed3, speed4 = 5, 24, 2, 6 # 5, 24, 2, 16 for traditional programs
 mcmcstorepoint = 0
 import time
 def time_it(func):

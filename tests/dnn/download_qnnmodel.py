@@ -1,23 +1,27 @@
+import tvm
+from tvm import relay
+import numpy as np
+
 from sparsezoo import Model
+
+
 import os 
 import onnx
 import re
 from google.protobuf.json_format import MessageToDict
 # !!!change
-stub = 'zoo:cv/segmentation/yolov8-s/pytorch/ultralytics/coco/base_quant-none'
-case_path = './out/obertamqatransformer'
+stub = 'zoo:nlp/question_answering/oberta-small/pytorch/huggingface/squad_v2/pruned90_quant-none'
+case_path = './out/obertasqatransformer'
 
 
 
-model = Model(stub)
-model.download()
-locpath = model.path 
-locpath = '/root/.cache/sparsezoo/9273788e-f3a8-41f8-8e93-e3249621866c'
+# model = Model(stub)
+# model.download()
+# locpath = model.path 
+# print(locpath)
+locpath = '/home/zichaox/.cache/sparsezoo/321dac91-0d0a-4815-bc95-9ec13ef997aa'#'/home/zichaox/.cache/sparsezoo/e37ce71a-d72f-42ec-b87f-21994e8fb6df'
 onnx_model = onnx.load(locpath+"/deployment/model.onnx")
 onnx.checker.check_model(onnx_model)
-import tvm
-from tvm import relay
-import numpy as np
 
 graph = onnx_model.graph
 
@@ -26,7 +30,7 @@ for _input in graph.input:
 
 for _input in graph.output:
     print(MessageToDict(_input))
-input_shape = (1,384)#(1,3,640,640)
+input_shape = (2,3,384) #(1,384)
 input_shape2 = (1,384)
 input_shape3 = (1,384)
 # {'name': 'input_ids', 'type': {'tensorType': {'elemType': 7, 'shape': {'dim': [{'dimParam': 'batch'}, {'dimValue': '384'}]}}}}
@@ -42,7 +46,9 @@ input_shape3 = (1,384)
 #     break
 mod, params = relay.frontend.from_onnx(onnx_model, {"input_ids": input_shape,'attention_mask':input_shape2})#input (general)/images #{"input": input_shape}
 # for mask model 'token_type_ids':(1,512)
-
+# for nlp  {"input_ids": input_shape,'attention_mask':input_shape2}
+if not os.path.exists('./out'):
+    os.mkdir('./out')
 if not os.path.exists(case_path):
     os.mkdir(case_path)
 
@@ -174,7 +180,7 @@ zoo:cv/classification/mobilenet_v1-1.0/pytorch/sparseml/imagenet/pruned_quant-mo
 zoo:cv/segmentation/yolov8-l/pytorch/ultralytics/coco/base_quant-none
 zoo:cv/segmentation/yolov8-n/pytorch/ultralytics/coco/base_quant-none
 zoo:cv/segmentation/yolov8-s/pytorch/ultralytics/coco/base_quant-none           \/
-     /root/.cache/sparsezoo/e37ce71a-d72f-42ec-b87f-21994e8fb6df
+     /home/zichaox/.cache/sparsezoo/e37ce71a-d72f-42ec-b87f-21994e8fb6df
 zoo:cv/segmentation/yolov8-x/pytorch/ultralytics/coco/base_quant-none
 
 6 outputs

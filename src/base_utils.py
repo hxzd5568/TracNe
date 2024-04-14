@@ -63,14 +63,15 @@ def normalname(mod):  # return new_mod and if changed flag
     return relay.parse(mod),len(changeflag)!=0
 
 # build run difference-test utils
-def build_workload(path,path2, params=None, Disabled_pass=['SimplifyExpr'],OPTLEVEL=5,fuseopsmax=64):
+def build_workload(path,path2, params=None, Disabled_pass=[],OPTLEVEL=5,fuseopsmax=64):#'SimplifyExpr'
         with open(path, 'r') as f:
             mod = relay.parse(f.read())
         with transform.PassContext(opt_level=1, required_pass=Required_pass1,
                                    config={"relay.FuseOps.max_depth": fuseopsmax},
-                                   disabled_pass=Disabled_pass):
+                                   disabled_pass=['SimplifyExpr']):
             lib1 = relay.build(mod, target, params=params)
-        with transform.PassContext(opt_level=OPTLEVEL,config={"relay.FuseOps.max_depth":fuseopsmax}):
+        with transform.PassContext(opt_level=OPTLEVEL,config={"relay.FuseOps.max_depth":fuseopsmax},
+                                disabled_pass=Disabled_pass):
             lib5 = relay.build(mod, target, params=params)
         lib1.export_library(path2+"/compiled_lib1.tar")
         lib5.export_library(path2+"/compiled_lib5.tar")
@@ -89,7 +90,7 @@ class Checkor:
     def __init__(self,path:str,case_id:str,params= None,
                  disabled_pass = ['SimplifyExpr'],lowbound:float=-5, highbound:float=5,
                  fuseopsmax =64,
-                 fuzzmode='DEMC2', optlevel =5,
+                 fuzzmode='MEGA', optlevel =5,
                  required_pass = ['DenseToSparse']):
         self.fuzzmode = fuzzmode
         self.path = path

@@ -44,14 +44,15 @@ def _parse_args():
 _parse_args()
 
 args1 = configargs.caseids
-if '/' in args1:
-    dump_path = args1
+print(args1)
+if '/' in args1[0]:
+    dump_path = args1[0]
     flag =1
     case_path = dump_path.split('out')[0]
     caseid = dump_path.split('out')[1][1:]
     caseids = [caseid]
 else:
-    print('Wrong input path. A valid path is "./tests/dnn/out/inceptionv3". ')
+    print('Wrong input path. A valid path is "./dnn/out/inceptionv3". ')
 
 
 for caseid in caseids:

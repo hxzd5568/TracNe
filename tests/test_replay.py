@@ -40,7 +40,10 @@ else:
 import time
 t0 = time.time()
 for caseid in caseids:
-    dump_path = case_path+'/out/'+caseid
+    if caseid.isdigit():
+        dump_path = case_path+'/out/'+caseid
+    else:
+        dump_path = case_path+'/dnn/out/'+caseid
     print(dump_path)
     fuzzer = Fuzzer(path =case_path,case_id=caseid,fuzzmode='MEGA')
     # save_irmod_viz(fuzzer.mod, dump_path+'/relayviz0')
