@@ -62,7 +62,7 @@ else:
 import time
 t0 = time.time()
 for caseid in caseids:
-    case_path = '/home/zichaox/tvm/Fuzzfp/introcase/tests/dnn/'
+    case_path = '~/tvm/Fuzzfp/introcase/tests/dnn/'
     dump_path = case_path+'/out/'+caseid
     print(dump_path)
     # if os.path.exists(dump_path+'/compiled_lib1.tar'):
