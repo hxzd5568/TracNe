@@ -69,7 +69,7 @@ for caseid in caseids:
     print(dump_path)
     # if os.path.exists(dump_path+'/compiled_lib1.tar'):
     #     os.remove(dump_path+'/compiled_lib1.tar')
-    for file in ['test_fuzzer.py', 'test_replay.py', 'test_traceerror.py', 'test_prop.py', 'test_pliner.py']:# 'test_fuzzer.py', 'test_replay.py', 'test_traceerror.py', 'test_fix.py', 'test_prop.py', 'test_pliner.py'
+    for file in [  'test_fuzzer.py','test_replay.py', 'test_traceerror.py', 'test_prop.py', 'test_pliner.py']:# 'test_fuzzer.py', 'test_replay.py', 'test_traceerror.py', 'test_fix.py', 'test_prop.py', 'test_pliner.py'
         cmd = ['python', file, caseid]
         try: #!! pack them
             rcode = run(cmd, timeout=180*4+30)

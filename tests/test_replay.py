@@ -44,6 +44,7 @@ for caseid in caseids:
         dump_path = case_path+'/out/'+caseid
     else:
         dump_path = case_path+'/dnn/out/'+caseid
+        case_path = case_path+'/dnn'
     print(dump_path)
     fuzzer = Fuzzer(path =case_path,case_id=caseid,fuzzmode='MEGA')
     # save_irmod_viz(fuzzer.mod, dump_path+'/relayviz0')

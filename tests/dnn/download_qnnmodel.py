@@ -11,7 +11,7 @@ import re
 from google.protobuf.json_format import MessageToDict
 # !!!change
 stub = 'zoo:nlp/question_answering/oberta-small/pytorch/huggingface/squad_v2/pruned90_quant-none'
-case_path = './out/obertasqatransformer'
+case_path = './out/yolov8s'
 
 
 
@@ -19,7 +19,7 @@ case_path = './out/obertasqatransformer'
 # model.download()
 # locpath = model.path 
 # print(locpath)
-locpath = '/home/zichaox/.cache/sparsezoo/321dac91-0d0a-4815-bc95-9ec13ef997aa'#'/home/zichaox/.cache/sparsezoo/e37ce71a-d72f-42ec-b87f-21994e8fb6df'
+locpath ='/home/zichaox/.cache/sparsezoo/e37ce71a-d72f-42ec-b87f-21994e8fb6df' #'/home/zichaox/.cache/sparsezoo/321dac91-0d0a-4815-bc95-9ec13ef997aa'#'/home/zichaox/.cache/sparsezoo/e37ce71a-d72f-42ec-b87f-21994e8fb6df'
 onnx_model = onnx.load(locpath+"/deployment/model.onnx")
 onnx.checker.check_model(onnx_model)
 
@@ -28,11 +28,11 @@ graph = onnx_model.graph
 for _input in graph.input:
     print(MessageToDict(_input))
 
-for _input in graph.output:
-    print(MessageToDict(_input))
-input_shape = (2,3,384) #(1,384)
-input_shape2 = (1,384)
-input_shape3 = (1,384)
+# for _input in graph.output:
+#     print(MessageToDict(_input))
+# input_shape = (2,3,384) #(1,384)
+# input_shape2 = (1,384)
+# input_shape3 = (1,384)
 # {'name': 'input_ids', 'type': {'tensorType': {'elemType': 7, 'shape': {'dim': [{'dimParam': 'batch'}, {'dimValue': '384'}]}}}}
 # {'name': 'attention_mask', 'type': {'tensorType': {'elemType': 7, 'shape': {'dim': [{'dimParam': 'batch'}, {'dimValue': '384'}]}}}}
 
@@ -44,7 +44,7 @@ input_shape3 = (1,384)
 #     input_shape = [int(d.get("dimValue")) for d in dim_info]  # [4,3,384,640]
 #     print(input_shape)
 #     break
-mod, params = relay.frontend.from_onnx(onnx_model, {"input_ids": input_shape,'attention_mask':input_shape2})#input (general)/images #{"input": input_shape}
+mod, params = relay.frontend.from_onnx(onnx_model, {"images": [2,3,640,640]})#input (general)/images #{"input": input_shape} # nlp: {"input_ids": input_shape,'attention_mask':input_shape2}
 # for mask model 'token_type_ids':(1,512)
 # for nlp  {"input_ids": input_shape,'attention_mask':input_shape2}
 if not os.path.exists('./out'):

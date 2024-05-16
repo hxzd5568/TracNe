@@ -25,6 +25,7 @@ target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
 Required_pass1 = ['EliminateCommonSubexpr','CombineParallelDense','CombineParallelBatchMatmul','CombineParallelConv2D']
+Disabled_pass5 = [] #['AlterOpLayout','ForwardFoldScaleAxis']#[ 'AlterOpLayout', 'CanonicalizeCast']#['CanonicalizeOps','BackwardFoldScaleAxis', 'FoldConstant', 'FastMath', 'ForwardFoldScaleAxis', 'SimplifyExpr']
 sys.path.append('../')
 def run_tmod(
     model,
@@ -64,14 +65,15 @@ def normalname(mod):  # return new_mod and if changed flag
 
 # build run difference-test utils
 def build_workload(path,path2, params=None, Disabled_pass=[],OPTLEVEL=5,fuseopsmax=64):#'SimplifyExpr'
+        print('come here')
         with open(path, 'r') as f:
             mod = relay.parse(f.read())
         with transform.PassContext(opt_level=1, required_pass=Required_pass1,
                                    config={"relay.FuseOps.max_depth": fuseopsmax},
                                    disabled_pass=['SimplifyExpr']):
             lib1 = relay.build(mod, target, params=params)
-        with transform.PassContext(opt_level=OPTLEVEL,config={"relay.FuseOps.max_depth":fuseopsmax},
-                                disabled_pass=Disabled_pass):
+        with transform.PassContext(opt_level=5,config={"relay.FuseOps.max_depth":fuseopsmax},
+                                disabled_pass=Disabled_pass5, ):
             lib5 = relay.build(mod, target, params=params)
         lib1.export_library(path2+"/compiled_lib1.tar")
         lib5.export_library(path2+"/compiled_lib5.tar")

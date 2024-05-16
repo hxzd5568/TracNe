@@ -24,7 +24,7 @@ TensorDict = Dict[str, np.ndarray]
 target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
-speed1, speed2, speed3, speed4 = 5, 24, 2, 6 # 5, 24, 2, 16 for traditional programs
+speed1, speed2, speed3, speed4 = 2, 10, 2, 6 # 5, 24, 2, 16 for traditional programs
 mcmcstorepoint = 0
 import time
 def time_it(func):
@@ -88,7 +88,7 @@ def remove_virtarget(ncode):
     return rncode
 def remove_primary(code):
     return  re.sub('(, Primitive\=.*?->)', ') ->', code,count=0, flags=re.M|re.S)
-
+Disabled_pass5 =[] #['AlterOpLayout','ForwardFoldScaleAxis']#[ 'AlterOpLayout', 'CanonicalizeCast']
 
 class Fuzzer(Checkor):
     def __init__(self,path:str,case_id:str,low:float=-5,high:float=5, fuseopsmax=64,
@@ -118,17 +118,17 @@ class Fuzzer(Checkor):
     def get_primfunc(self, opt_level,target='llvm'):# i.e. get tvm.ir.module.IRModule
         target, target_host = tvm.target.Target.canon_target_and_host(target)
         if opt_level>=2:
-            with tvm.transform.PassContext(opt_level=opt_level,
+            with tvm.transform.PassContext(opt_level=opt_level,disabled_pass=Disabled_pass5,
                                            config={"relay.FuseOps.max_depth": self.fuseopsmax}):
                 prim_mod, _ = relay.optimize(self.mod, target)
-                code = remove_virtarget(prim_mod.astext())
+                code = remove_virtarget(str(prim_mod))
             return code
         else:
             with tvm.transform.PassContext(opt_level=opt_level,
                                            config={"relay.FuseOps.max_depth": self.fuseopsmax},
                                            required_pass=self.Required_pass1,disabled_pass=self.Disabled_pass):# config={"relay.FuseOps.max_depth": 10}
                 prim_mod, _ = relay.optimize(self.mod, target)
-                code = remove_virtarget(prim_mod.astext())
+                code = remove_virtarget(str(prim_mod))
             return code
     def rundiff(self,main_fn:relay.function.Function,
                  arrs:List[np.array]=None,changeweight=False):# input:list of np

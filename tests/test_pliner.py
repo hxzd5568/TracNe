@@ -36,7 +36,7 @@ for caseid in caseids:
     print(f'Reducing case {caseid}:')
 
     # Possibly load inputs and parameters
-    inputs_path = os.path.join(dump_path, 'inputs.npz')
+    inputs_path = os.path.join(dump_path, 'iinputs.npz')
     inputs = None
     if os.path.exists(inputs_path):
         with np.load(inputs_path) as f:
@@ -48,8 +48,11 @@ for caseid in caseids:
         opsn = int(re.findall('(%\d+)',mod.astext())[-1].strip('%'))+1
     else:
         opsn = 1
-    plinerins.unacceptable(675)
+    # plinerins.unacceptable(675)
     plinerins.pliner(0, opsn)
+    # mod2 = plinerins.pliner(0, opsn)
+    # with open('./dnn/out/yolov8presoft/code.txt','w') as fp:
+    #     fp.write(mod2.astext())
     t1 = time.time()
     print(caseid, 'using time' , t1-t0)
     t0= t1
