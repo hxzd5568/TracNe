@@ -25,7 +25,7 @@ target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
 Required_pass1 = ['EliminateCommonSubexpr','CombineParallelDense','CombineParallelBatchMatmul','CombineParallelConv2D']
-Disabled_pass5 = [] #['AlterOpLayout','ForwardFoldScaleAxis']#[ 'AlterOpLayout', 'CanonicalizeCast']#['CanonicalizeOps','BackwardFoldScaleAxis', 'FoldConstant', 'FastMath', 'ForwardFoldScaleAxis', 'SimplifyExpr']
+Disabled_pass5 =['SimplifyExpr'] #['AlterOpLayout','ForwardFoldScaleAxis']#[ 'AlterOpLayout', 'CanonicalizeCast']#['AlterOpLayout','ForwardFoldScaleAxis']#[ 'AlterOpLayout', 'CanonicalizeCast']#['CanonicalizeOps','BackwardFoldScaleAxis', 'FoldConstant', 'FastMath', 'ForwardFoldScaleAxis', 'SimplifyExpr']
 sys.path.append('../')
 def run_tmod(
     model,

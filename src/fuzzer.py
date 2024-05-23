@@ -26,6 +26,7 @@ layout = None
 dev = tvm.cpu(0)
 speed1, speed2, speed3, speed4 = 2, 10, 2, 6 # 5, 24, 2, 16 for traditional programs
 mcmcstorepoint = 0
+Disabled_pass5 =['SimplifyExpr'] #['AlterOpLayout','ForwardFoldScaleAxis']#[ 'AlterOpLayout', 'CanonicalizeCast']
 import time
 def time_it(func):
     def inner():
@@ -88,7 +89,7 @@ def remove_virtarget(ncode):
     return rncode
 def remove_primary(code):
     return  re.sub('(, Primitive\=.*?->)', ') ->', code,count=0, flags=re.M|re.S)
-Disabled_pass5 =[] #['AlterOpLayout','ForwardFoldScaleAxis']#[ 'AlterOpLayout', 'CanonicalizeCast']
+
 
 class Fuzzer(Checkor):
     def __init__(self,path:str,case_id:str,low:float=-5,high:float=5, fuseopsmax=64,
@@ -121,14 +122,14 @@ class Fuzzer(Checkor):
             with tvm.transform.PassContext(opt_level=opt_level,disabled_pass=Disabled_pass5,
                                            config={"relay.FuseOps.max_depth": self.fuseopsmax}):
                 prim_mod, _ = relay.optimize(self.mod, target)
-                code = remove_virtarget(str(prim_mod))
+                code = remove_virtarget(prim_mod.astext())
             return code
         else:
             with tvm.transform.PassContext(opt_level=opt_level,
                                            config={"relay.FuseOps.max_depth": self.fuseopsmax},
                                            required_pass=self.Required_pass1,disabled_pass=self.Disabled_pass):# config={"relay.FuseOps.max_depth": 10}
                 prim_mod, _ = relay.optimize(self.mod, target)
-                code = remove_virtarget(str(prim_mod))
+                code = remove_virtarget(prim_mod.astext())#,remove_virtarget(str(prim_mod))
             return code
     def rundiff(self,main_fn:relay.function.Function,
                  arrs:List[np.array]=None,changeweight=False):# input:list of np
@@ -196,8 +197,8 @@ class Fuzzer(Checkor):
             else:
                 return input2,0
     def save_files(self):
-        optprim_mod = self.get_primfunc(self.OPTLEVEL)
-        unoptprim_mod = self.get_primfunc(1)
+        optprim_mod= self.get_primfunc(self.OPTLEVEL)
+        unoptprim_mod= self.get_primfunc(1)
         with open(f'{self.case_path}/optirmod.txt', 'w') as f: # str less #[version = "0.0.5"]\n
             f.write( optprim_mod)
         with open(f'{self.case_path}/unoptirmod.txt', 'w') as f:
