@@ -1,3 +1,5 @@
+# issue report : https://github.com/apache/tvm/issues/12632
+
 import torch
 from tvm import relay
 import tvm
@@ -11,6 +13,8 @@ input_shapes = [('input0', torch.Size([14, 7]))]
 
 mod, params = relay.frontend.from_pytorch(trace, input_shapes)
 input_data_np = input_data.numpy()
+
+# --- fix bugs by disable pass: fastmath ---
 with tvm.transform.PassContext(opt_level=3,):#disabled_pass=['FastMath']
     exe = relay.create_executor('graph', mod=mod, params=params, device=tvm.device('llvm', 0), target='llvm').evaluate()
 input_tvm = {'input0': tvm.nd.array(input_data_np.astype(np.float64))}
