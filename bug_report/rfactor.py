@@ -1,3 +1,5 @@
+# issue url: https://github.com/apache/tvm/issues/6588
+
 import numpy as np
 import tvm
 from tvm import relay
