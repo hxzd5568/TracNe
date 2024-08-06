@@ -7,66 +7,66 @@ def @main(%x: Tensor[(64), float32]) {
 
 #[metadata]
 {
-  "root": 1, 
+  "root": 1,
   "nodes": [
     {
       "type_key": ""
-    }, 
+    },
     {
-      "type_key": "Map", 
+      "type_key": "Map",
       "keys": [
         "relay.Constant"
-      ], 
+      ],
       "data": [2]
-    }, 
+    },
     {
-      "type_key": "Array", 
+      "type_key": "Array",
       "data": [3, 6, 7]
-    }, 
+    },
     {
-      "type_key": "relay.Constant", 
+      "type_key": "relay.Constant",
       "attrs": {
-        "_checked_type_": "0", 
-        "data": "0", 
-        "span": "0", 
+        "_checked_type_": "0",
+        "data": "0",
+        "span": "0",
         "virtual_device_": "4"
       }
-    }, 
+    },
     {
-      "type_key": "VirtualDevice", 
+      "type_key": "VirtualDevice",
       "attrs": {
-        "device_type_int": "-1", 
-        "memory_scope": "5", 
-        "target": "0", 
+        "device_type_int": "-1",
+        "memory_scope": "5",
+        "target": "0",
         "virtual_device_id": "-1"
       }
-    }, 
+    },
     {
       "type_key": "runtime.String"
-    }, 
+    },
     {
-      "type_key": "relay.Constant", 
+      "type_key": "relay.Constant",
       "attrs": {
-        "_checked_type_": "0", 
-        "data": "1", 
-        "span": "0", 
+        "_checked_type_": "0",
+        "data": "1",
+        "span": "0",
         "virtual_device_": "4"
       }
-    }, 
+    },
     {
-      "type_key": "relay.Constant", 
+      "type_key": "relay.Constant",
       "attrs": {
-        "_checked_type_": "0", 
-        "data": "2", 
-        "span": "0", 
+        "_checked_type_": "0",
+        "data": "2",
+        "span": "0",
         "virtual_device_": "4"
       }
     }
-  ], 
+  ],
   "b64ndarrays": [
-    "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAAAQAAAAIgAQBAAAAAAAAAAAABAAAAAAAArukZP7DrMz8hZxc/tisrPxfYoz31zxQ/K8tWPw1nDz+9RNw+5qFBP2YCSz4EfM4+4r+SPm5dyT7hKZc+2vUjPwJJgTtcom0/zKtbP/ZXCD/l4Dk/yZ6hPVn2nD74kUQ+xd6vPkVb+j7HvAo+e2CcPrXtej/h9e8+rIswPxolFj8DVEs/9rUeP9fpQz42IlI+114wPtx68z5N0cw+6Ts9P8OyGD/W2CU/vwqKPijNBz8Ns04+rhGpPi+8Kj30lZA+F9k6P1oXSj+AzYo+zRCNPReYgjwjoVc/+m6IPoMYRj+IjRc+c5jlPVhpkz4S5KI82EROPvDn/z62GDY/BRzCPQ==", 
-    "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAAAQAAAAIgAQBAAAAAAAAAAAABAAAAAAAAykikPrfLnz1FD4k90d+qPvGw/jzlKNg8Az5XPmUSJD8lEGY/sFsDP1KQbT9Jw3w/dtv9PgUsnD1D2nw/2Ps8PTHIVT8dvxY/IkuPPrBd8D7I4WM/vH95PkqGpz1/8LE+BGonPx0xXD9Kjvk+NjJCP6Y+4T2h9yE/8e8vPuyheD9Vwl0+pbanPkYIvTyqMb0+udTLPgLLLD/4XQU+Vg3APRVJsT04/sc+tb1sP/RGCD8yCg8/jPRgPz7fzT7jhlQ/ptq7Pt2VTz5XJXk+YtURP7qZ+j4I8DE/VHpPP0rhaj4x7B0/ywQPPzSh2z5V9sc+ufYkPuW29z2wQ649FDqePg==", 
+    "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"
-  ], 
+  ],
   "attrs": {"tvm_version": "0.12.dev0"}
 }

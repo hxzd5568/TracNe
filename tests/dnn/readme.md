@@ -16,17 +16,17 @@ This process will download the model to the workspace dnn/out/ and compile model
 
 TracNe provides a script to download pretrained and quantized ONNX models.
 ```shell
-python download_qnnmodel.py  
+python download_qnnmodel.py
 ```
 Users can choose the model index from the [website](https://sparsezoo.neuralmagic.com/), and then assign parameter $stub$ in the script using the index.
 
-## Detect numerical errors in models 
+## Detect numerical errors in models
 
 ```shell
-python test_fuzztorch.py ./dnn/out/model  
+python test_fuzztorch.py ./dnn/out/model
 ```
 This script supports searching numerical errors caused by framework differences and optimizations.
-Users can choose to detect framework errors by setting $fuzzframe$ True. The default targets optimization errors. 
+Users can choose to detect framework errors by setting $fuzzframe$ True. The default targets optimization errors.
 
 ## Dataset for YOLOv8
 [Download ImageNet 2012 dataset](https://www.image-net.org/challenges/LSVRC/2012/index.php)

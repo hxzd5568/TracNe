@@ -41,90 +41,90 @@ def @main(%data : Tensor[(2, 3, 16, 16), float32] /* ty=Tensor[(2, 3, 16, 16), f
 
 #[metadata]
 {
-  "root": 1, 
+  "root": 1,
   "nodes": [
     {
       "type_key": ""
-    }, 
+    },
     {
-      "type_key": "Map", 
+      "type_key": "Map",
       "keys": [
         "VirtualDevice"
-      ], 
+      ],
       "data": [2]
-    }, 
+    },
     {
-      "type_key": "Array", 
+      "type_key": "Array",
       "data": [3]
-    }, 
+    },
     {
-      "type_key": "VirtualDevice", 
+      "type_key": "VirtualDevice",
       "attrs": {
-        "device_type_int": "1", 
-        "memory_scope": "14", 
-        "target": "4", 
+        "device_type_int": "1",
+        "memory_scope": "14",
+        "target": "4",
         "virtual_device_id": "0"
       }
-    }, 
+    },
     {
-      "type_key": "Target", 
+      "type_key": "Target",
       "attrs": {
-        "attrs": "11", 
-        "features": "12", 
-        "host": "13", 
-        "keys": "10", 
-        "kind": "5", 
+        "attrs": "11",
+        "features": "12",
+        "host": "13",
+        "keys": "10",
+        "kind": "5",
         "tag": "9"
       }
-    }, 
+    },
     {
-      "type_key": "TargetKind", 
+      "type_key": "TargetKind",
       "attrs": {
-        "default_device_type": "1", 
-        "default_keys": "7", 
+        "default_device_type": "1",
+        "default_keys": "7",
         "name": "6"
       }
-    }, 
+    },
     {
-      "type_key": "runtime.String", 
+      "type_key": "runtime.String",
       "repr_str": "llvm"
-    }, 
+    },
     {
-      "type_key": "Array", 
+      "type_key": "Array",
       "data": [8]
-    }, 
+    },
     {
-      "type_key": "runtime.String", 
+      "type_key": "runtime.String",
       "repr_str": "cpu"
-    }, 
+    },
     {
       "type_key": "runtime.String"
-    }, 
+    },
     {
-      "type_key": "Array", 
+      "type_key": "Array",
       "data": [8]
-    }, 
+    },
     {
       "type_key": "Map"
-    }, 
+    },
     {
       "type_key": "Map"
-    }, 
+    },
     {
-      "type_key": "Target", 
+      "type_key": "Target",
       "attrs": {
-        "attrs": "11", 
-        "features": "12", 
-        "host": "0", 
-        "keys": "10", 
-        "kind": "5", 
+        "attrs": "11",
+        "features": "12",
+        "host": "0",
+        "keys": "10",
+        "kind": "5",
         "tag": "9"
       }
-    }, 
+    },
     {
       "type_key": "runtime.String"
     }
-  ], 
-  "b64ndarrays": [], 
+  ],
+  "b64ndarrays": [],
   "attrs": {"tvm_version": "0.12.dev0"}
 }

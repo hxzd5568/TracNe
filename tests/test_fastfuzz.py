@@ -1,5 +1,5 @@
 import tvm
-from tvm import relay,runtime
+from tvm import relay, runtime
 import os
 import numpy as np
 import queue
@@ -13,7 +13,7 @@ from argparse import Namespace, ArgumentParser
 from typing import Iterable, List, cast, Optional, Dict
 import sys
 
-sys.path.append('..')
+sys.path.append("..")
 from src.base_utils import Checkor
 from src.fastfuzz import Fuzzer
 from multiprocessing import Process
@@ -28,22 +28,21 @@ import psutil
 #     return info.uss / 1024. / 1024. / 1024.
 
 case_path = os.getcwd()
-case_id = os.path.basename(__file__).strip('.py')
+case_id = os.path.basename(__file__).strip(".py")
 args = sys.argv
-if '-' in args[1]:
-    l,r = int(args[1].split('-')[0]),\
-            int(args[1].split('-')[1])+1
-    caseids = [str(i) for i in range(l,r,1)]
-elif ',' in args[1]:
-    caseids = args[1].split(',')
+if "-" in args[1]:
+    l, r = int(args[1].split("-")[0]), int(args[1].split("-")[1]) + 1
+    caseids = [str(i) for i in range(l, r, 1)]
+elif "," in args[1]:
+    caseids = args[1].split(",")
 else:
     caseids = args[1:]
 
 
 for caseid in caseids:
-    dump_path = case_path+'/out/'+caseid
+    dump_path = case_path + "/out/" + caseid
     print(dump_path)
-    fuzzer = Fuzzer(path =dump_path)
+    fuzzer = Fuzzer(path=dump_path)
     fuzzer.fuzzps()
     # trace_error = Trace_error(dump_path)
     # # trace_error.get_trace_message()

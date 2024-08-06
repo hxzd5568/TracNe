@@ -14,7 +14,7 @@ from ..util import filter_none, NameGenerator
 
 
 class Vertex:
-    def __init__(self, expr: relay.Expr, pred: List['Vertex'], tup_in: bool):
+    def __init__(self, expr: relay.Expr, pred: List["Vertex"], tup_in: bool):
         self.expr_ = expr
         self.pred_ = pred
         self.succ_ = []
@@ -29,9 +29,15 @@ class Vertex:
 
 
 class CaseReducer:
-    def __init__(self, code: str, err: str, opt_level: int, inputs: Optional[TensorDict] = None,
-                 params: Optional[TensorDict] = None):
-        self.fn_ = parser.parse(code)['main']
+    def __init__(
+        self,
+        code: str,
+        err: str,
+        opt_level: int,
+        inputs: Optional[TensorDict] = None,
+        params: Optional[TensorDict] = None,
+    ):
+        self.fn_ = parser.parse(code)["main"]
         self.err_ = err
         self.opt_level_ = opt_level
         self.inputs_ = inputs
@@ -49,14 +55,19 @@ class CaseReducer:
 
         # Create final function and output result
         outputs = _find_zero_succ(vertices)
-        fn = RelayReducer(vertices, self.graph_.expr2vert_, NameGenerator('rx')).reduce(outputs)
+        fn = RelayReducer(vertices, self.graph_.expr2vert_, NameGenerator("rx")).reduce(
+            outputs
+        )
         mod = IRModule.from_expr(fn)
         mod = relay.transform.InferType()(mod)
-        return mod.astext(), ''
+        return mod.astext(), ""
 
-    def _reduce_dir(self, vertices: Set[Vertex],
-                    pred_fn: Callable[[Vertex], List[Vertex]],
-                    succ_fn: Callable[[Vertex], List[Vertex]]) -> Set[Vertex]:
+    def _reduce_dir(
+        self,
+        vertices: Set[Vertex],
+        pred_fn: Callable[[Vertex], List[Vertex]],
+        succ_fn: Callable[[Vertex], List[Vertex]],
+    ) -> Set[Vertex]:
         # Count predecessors and find zero-predecessor set
         pred_cnt = {v: len([p for p in pred_fn(v) if p in vertices]) for v in vertices}
         zero_pred = []
@@ -108,7 +119,7 @@ def _find_zero_succ(vertices: Set[Vertex]):
 
 def _gen_reduced_mod(vertices: Set[Vertex], expr2vert: Dict[relay.Expr, Vertex]):
     outputs = _find_zero_succ(vertices)
-    name_gen = NameGenerator('rx')
+    name_gen = NameGenerator("rx")
     fn = RelayReducer(vertices, expr2vert, name_gen).reduce(outputs)
     return IRModule.from_expr(fn)
 
@@ -128,7 +139,7 @@ class RunReducer(CaseReducer):
         try:
             gmod = build_mod(mod, self.opt_level_)
             rng = Generator(PCG64(seed=42))
-            inputs = gen_tensor_value_dict(mod['main'].params, rng)
+            inputs = gen_tensor_value_dict(mod["main"].params, rng)
             run_gmod(gmod, inputs)
         except Exception as err:
             return levenshtein(str(err), self.err_) < 100
@@ -153,18 +164,30 @@ class ComputeReducer(CaseReducer):
             mod = _gen_reduced_mod(vertices, self.graph_.expr2vert_)
 
             # Get reference outputs
-            gmod = build_mod(mod, 0, dpass=['AlterOpLayout',
-                                              'SimplifyExpr'])
+            gmod = build_mod(mod, 0, dpass=["AlterOpLayout", "SimplifyExpr"])
             ref_outputs = run_gmod(gmod, self.inputs_)
 
             # Get and compare outputs at optimization level
-            gmod = build_mod(mod, self.opt_level_, params=self.params_,rpass= ['AlterOpLayout', 'CombineParallelDense',
-                                              'SimplifyExpr','FastMath','FoldScaleAxis'])
+            gmod = build_mod(
+                mod,
+                self.opt_level_,
+                params=self.params_,
+                rpass=[
+                    "AlterOpLayout",
+                    "CombineParallelDense",
+                    "SimplifyExpr",
+                    "FastMath",
+                    "FoldScaleAxis",
+                ],
+            )
             outputs = run_gmod(gmod, inputs=self.inputs_)
 
             # Print outputs of subgraph
-            extra.write(f'At operator {num_vert - 1}:\n' + '\n'.join(
-                np.array_repr(o) for o in outputs) + '\n\n')
+            extra.write(
+                f"At operator {num_vert - 1}:\n"
+                + "\n".join(np.array_repr(o) for o in outputs)
+                + "\n\n"
+            )
 
             # Detect error
             found_err = False
@@ -173,7 +196,9 @@ class ComputeReducer(CaseReducer):
                     found_err = True
                     break
             if found_err:
-                extra.write('Expected:\n' + '\n'.join(np.array_repr(o) for o in ref_outputs))
+                extra.write(
+                    "Expected:\n" + "\n".join(np.array_repr(o) for o in ref_outputs)
+                )
                 progress.close()
                 break
 
@@ -183,8 +208,12 @@ class ComputeReducer(CaseReducer):
 
 
 class Graph:
-    def __init__(self, zero_succ: List[Vertex], vertices: List[Vertex],
-                 expr2vert: Dict[relay.Expr, Optional[Vertex]]):
+    def __init__(
+        self,
+        zero_succ: List[Vertex],
+        vertices: List[Vertex],
+        expr2vert: Dict[relay.Expr, Optional[Vertex]],
+    ):
         self.zero_succ_ = zero_succ
         self.vertices_ = vertices
         self.expr2vert_ = expr2vert
@@ -206,8 +235,12 @@ def _collect_rpo(graph: Graph):
 
 
 class RelayReducer(relay.ExprMutator):
-    def __init__(self, vertices: Set[Vertex], expr2vert: Dict[relay.Expr, Vertex],
-                 name_gen: NameGenerator):
+    def __init__(
+        self,
+        vertices: Set[Vertex],
+        expr2vert: Dict[relay.Expr, Vertex],
+        name_gen: NameGenerator,
+    ):
         super().__init__()
         self._vertices = vertices
         self._expr2vert = expr2vert
@@ -230,10 +263,16 @@ class RelayReducer(relay.ExprMutator):
         if vert in self._vertices:
             return super().visit_call(call)
         if vert.is_tuple_out:
-            return relay.Tuple([relay.Var(self._name_gen.generate(), type_annotation=ty)
-                                for ty in call.checked_type.fields])
+            return relay.Tuple(
+                [
+                    relay.Var(self._name_gen.generate(), type_annotation=ty)
+                    for ty in call.checked_type.fields
+                ]
+            )
         else:
-            return relay.Var(self._name_gen.generate(), type_annotation=call.checked_type)
+            return relay.Var(
+                self._name_gen.generate(), type_annotation=call.checked_type
+            )
 
     def visit_tuple_getitem(self, getitem: relay.TupleGetItem):
         getitem = super().visit_tuple_getitem(getitem)
@@ -255,7 +294,7 @@ class GraphBuilder(relay.ExprFunctor):
         elif isinstance(body, relay.Tuple):
             zero_succ = [self.visit(f) for f in body.fields]
         else:
-            raise TypeError(f'Unknown body type {type(body)}.')
+            raise TypeError(f"Unknown body type {type(body)}.")
         return Graph(zero_succ, self._vertices, self.memo_map)
 
     def visit_var(self, var: relay.Var):

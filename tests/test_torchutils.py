@@ -1,5 +1,5 @@
 import tvm
-from tvm import relay,runtime
+from tvm import relay, runtime
 import os
 import numpy as np
 import queue
@@ -12,20 +12,21 @@ from tvm.contrib.graph_executor import GraphModule
 from argparse import Namespace, ArgumentParser
 from typing import Iterable, List, cast, Optional, Dict
 import sys
-sys.path.append('..')
+
+sys.path.append("..")
 from src.base_utils import Checkor
 from src.fuzzer import Fuzzer
 from multiprocessing import Process
 from src.traceerror import Trace_error
 import psutil
-from src.torch_utils import  test_dnn
+from src.torch_utils import test_dnn
 import re
 
-case_path = './dnn/'
+case_path = "./dnn/"
 
 args = sys.argv
 model_name = args[1]
-test_dnn(model_name=model_name,path=case_path,caseid= model_name )
+test_dnn(model_name=model_name, path=case_path, caseid=model_name)
 # try:
 #     test_dnn(model_name=model_name,path=case_path,caseid= model_name )    # resnet [0,1]
 # except Exception as e:
@@ -64,23 +65,23 @@ test_dnn(model_name=model_name,path=case_path,caseid= model_name )
 #     del fuzzer
 #     del pfuzzer
 
-    # trace_error = Trace_error(dump_path)
-    # # trace_error.get_trace_message()
-    # try:
-    #     trace_error.get_node_name()
-    # except Exception as e:
-    #     print(e.__class__.__name__, e)
-    # del trace_error
-    # try:
+# trace_error = Trace_error(dump_path)
+# # trace_error.get_trace_message()
+# try:
+#     trace_error.get_node_name()
+# except Exception as e:
+#     print(e.__class__.__name__, e)
+# del trace_error
+# try:
 
-    #     continue
-    # except Exception as e:
-    #     print(e.__class__.__name__,':',e)
-    #     # print (traceback.format_exc ())
-    #     continue
-'''
+#     continue
+# except Exception as e:
+#     print(e.__class__.__name__,':',e)
+#     # print (traceback.format_exc ())
+#     continue
+"""
 resnet18    global minimum: x , f(x) =  0.09812591429267264
 0.09812591429267264 me using time 1209.5658423900604
 
 
-'''
+"""

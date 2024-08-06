@@ -2,13 +2,57 @@ import typing as t
 from functools import reduce
 from typing import NamedTuple, Dict, cast
 
-from .array import Tuple, List, GetItem, Len, Concat, Slice, Map, ReduceArray, ReduceRange, \
-    Filter, InSet, Subset, Perm
-from .basic import Expr, ExprKind, Env, Const, Var, Symbol, Range, Arith, ArithOp, Cmp, Not, And, \
-    Or, ForAll, Cond, GetAttr, Dummy
+from .array import (
+    Tuple,
+    List,
+    GetItem,
+    Len,
+    Concat,
+    Slice,
+    Map,
+    ReduceArray,
+    ReduceRange,
+    Filter,
+    InSet,
+    Subset,
+    Perm,
+)
+from .basic import (
+    Expr,
+    ExprKind,
+    Env,
+    Const,
+    Var,
+    Symbol,
+    Range,
+    Arith,
+    ArithOp,
+    Cmp,
+    Not,
+    And,
+    Or,
+    ForAll,
+    Cond,
+    GetAttr,
+    Dummy,
+)
 from .tensor import Num, Shape, Rank, GetDType, LayoutMap, LayoutIndex
-from .ty import Type, TypeKind, BoolType, IntType, FloatType, StrType, DType, TupleType, ListType, \
-    TyVar, BOOL, INT, STR, DTYPE
+from .ty import (
+    Type,
+    TypeKind,
+    BoolType,
+    IntType,
+    FloatType,
+    StrType,
+    DType,
+    TupleType,
+    ListType,
+    TyVar,
+    BOOL,
+    INT,
+    STR,
+    DTYPE,
+)
 from .visitor import TypeVisitor, ExprVisitor
 from ..util import unwrap, unwrap_or, filter_none, cls_name
 
@@ -45,13 +89,14 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
         except UnificationError as err:
             raise ExprTypeError(e, str(err))
         if self._var_chk.visit(ty, None):
-            raise ExprTypeError(e, f'Cannot infer type for {cls_name(e)}.')
+            raise ExprTypeError(e, f"Cannot infer type for {cls_name(e)}.")
         if e.type_ is not None:
             try:
                 self._unify(e.type_, ty)
             except UnificationError:
                 raise ExprTypeError(
-                    e, f'Inferred type {ty} is not consistent with annotated type {e.type_}.'
+                    e,
+                    f"Inferred type {ty} is not consistent with annotated type {e.type_}.",
                 )
         e.type_ = ty
         return ty
@@ -73,7 +118,7 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
     def visit_range(self, ran: Range, arg: InferArg) -> Type:
         ty = self._unify_expr(filter_none([ran.begin_, ran.end_]), arg)
         if ty.kind not in ran.valid_type_kinds:
-            raise ExprTypeError(ran, f'Range not supported for type {ty}.')
+            raise ExprTypeError(ran, f"Range not supported for type {ty}.")
         return ty
 
     def visit_arith(self, arith: Arith, arg: InferArg) -> Type:
@@ -84,7 +129,7 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
     def _check_arith_type(e: Expr, op: ArithOp, ty: Type):
         if ty not in Arith.op_funcs[op]:
             raise ExprTypeError(
-                e, f'Arithmetic operator {op.value} not supported for type {ty}.'
+                e, f"Arithmetic operator {op.value} not supported for type {ty}."
             )
         return ty
 
@@ -92,7 +137,7 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
         ty = self._unify_expr([cmp.lhs_, cmp.rhs_], InferArg(arg.env, TyVar()))
         if ty not in Cmp.op_funcs[cmp.op_]:
             raise ExprTypeError(
-                cmp, f'Comparison operator {cmp.op_.value} not supported for type {ty}.'
+                cmp, f"Comparison operator {cmp.op_.value} not supported for type {ty}."
             )
         return self._unify(arg.hint, BOOL)
 
@@ -119,13 +164,11 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
 
     def visit_attr(self, attr: GetAttr, arg: InferArg) -> Type:
         if attr.name_ not in self._attr_ty:
-            raise ExprTypeError(
-                attr, f'Attribute \'{attr.name_}\' undefined.'
-            )
+            raise ExprTypeError(attr, f"Attribute '{attr.name_}' undefined.")
         return self._attr_ty[attr.name_]
 
     def visit_dummy(self, dum: Dummy, arg: InferArg) -> Type:
-        raise ExprTypeError(dum, 'Dummy expression cannot appear in user code.')
+        raise ExprTypeError(dum, "Dummy expression cannot appear in user code.")
 
     def visit_num(self, num: Num, arg: InferArg) -> Type:
         return self._unify(arg.hint, INT)
@@ -162,11 +205,11 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
         elif hint.kind == TypeKind.var:
             field_hint = [TyVar() for _ in range(tup_len)]
         else:
-            raise ExprTypeError(
-                tup, f'Incompatible type {hint} for {cls_name(tup)}.'
-            )
-        field_ty = (self.visit(e, InferArg(arg.env, hint)) for e, hint in
-                    zip(tup.fields_, field_hint))
+            raise ExprTypeError(tup, f"Incompatible type {hint} for {cls_name(tup)}.")
+        field_ty = (
+            self.visit(e, InferArg(arg.env, hint))
+            for e, hint in zip(tup.fields_, field_hint)
+        )
         return TupleType(*field_ty)
 
     def visit_list(self, lst: List, arg: InferArg) -> Type:
@@ -184,19 +227,19 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
             if arr_ty.is_homo_:
                 return self._unify(arr_ty.elem_type, arg.hint)
             elif getitem.idx_.kind == ExprKind.CONST:
-                return self._unify(arr_ty.field_ty_[cast(Const, getitem.idx_).val_], arg.hint)
+                return self._unify(
+                    arr_ty.field_ty_[cast(Const, getitem.idx_).val_], arg.hint
+                )
             else:
                 raise ExprTypeError(
                     getitem,
-                    f'Cannot infer type for {cls_name(getitem)} that gets non-constant item '
-                    f'from heterogeneous tuple.'
+                    f"Cannot infer type for {cls_name(getitem)} that gets non-constant item "
+                    f"from heterogeneous tuple.",
                 )
         elif arr_ty.kind == TypeKind.list:
             return self._unify(cast(ListType, arr_ty).elem_ty_, arg.hint)
         else:
-            raise ExprTypeError(
-                getitem, f'Cannot get item from type {arr_ty}.'
-            )
+            raise ExprTypeError(getitem, f"Cannot get item from type {arr_ty}.")
 
     def visit_len(self, ln: Len, arg: InferArg) -> Type:
         self.visit(ln.arr_, InferArg(arg.env, ListType(TyVar())))
@@ -259,8 +302,11 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
         return self._unifier.visit(lhs, rhs)
 
     def _unify_expr(self, expr_list: t.List[Expr], arg: InferArg):
-        return reduce(lambda ty, expr: self._unify(ty, self.visit(expr, InferArg(arg.env, ty))),
-                      expr_list, arg.hint)
+        return reduce(
+            lambda ty, expr: self._unify(ty, self.visit(expr, InferArg(arg.env, ty))),
+            expr_list,
+            arg.hint,
+        )
 
     @staticmethod
     def _create_elem_hint(e: Expr, hint: Type):
@@ -269,9 +315,7 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
         elif hint.kind == TypeKind.var:
             elem_hint = TyVar()
         else:
-            raise ExprTypeError(
-                e, f'Incompatible type {hint} for {cls_name(e)}.'
-            )
+            raise ExprTypeError(e, f"Incompatible type {hint} for {cls_name(e)}.")
         return elem_hint
 
     @staticmethod
@@ -280,9 +324,7 @@ class TypeInfer(ExprVisitor[InferArg, Type]):
         if ty.elem_type is not None:
             return unwrap(elem_ty)
         else:
-            raise ExprTypeError(
-                e, f'Cannot get element type for {ty}.'
-            )
+            raise ExprTypeError(e, f"Cannot get element type for {ty}.")
 
 
 class TypeVarChecker(TypeVisitor[None, bool]):
@@ -317,7 +359,7 @@ class UnificationError(Exception):
         self.rhs = rhs
 
     def __str__(self):
-        return f'Cannot unify {self.lhs} and {self.rhs}.'
+        return f"Cannot unify {self.lhs} and {self.rhs}."
 
 
 class TypeUnifier(TypeVisitor[Type, Type]):
@@ -357,7 +399,9 @@ class TypeUnifier(TypeVisitor[Type, Type]):
             other = cast(TupleType, other)
             if len(tup.field_ty_) != len(other.field_ty_):
                 raise UnificationError(tup, other)
-            field_ty = map(lambda p: self.visit(p[0], p[1]), zip(tup.field_ty_, other.field_ty_))
+            field_ty = map(
+                lambda p: self.visit(p[0], p[1]), zip(tup.field_ty_, other.field_ty_)
+            )
             return TupleType(*field_ty)
         elif other.kind == TypeKind.list:
             if not tup.is_homo_:

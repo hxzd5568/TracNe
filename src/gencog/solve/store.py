@@ -25,7 +25,7 @@ class ValueStatus(IntEnum):
 
 
 class StoreError(Exception):
-    def __init__(self, node: Optional['StoreNode'], msg: str):
+    def __init__(self, node: Optional["StoreNode"], msg: str):
         self.node_ = node
         self.msg_ = msg
 
@@ -34,19 +34,23 @@ class StoreNode:
     """
     Node in a value store.
     """
+
     kind: NodeKind
 
-    def __init__(self, store: 'ValueStore'):
+    def __init__(self, store: "ValueStore"):
         self.store_ = store
 
     @staticmethod
-    def create_undefined(store: 'ValueStore', ty: Type) -> 'StoreNode':
+    def create_undefined(store: "ValueStore", ty: Type) -> "StoreNode":
         return ScalarNode(store, ty) if ty.is_scalar else ArrayNode(store, ty)
 
     @staticmethod
-    def create_defined(store: 'ValueStore', expr: Expr) -> 'StoreNode':
-        return ScalarNode(store, expr.type_, expr=expr) if expr.type_.is_scalar \
+    def create_defined(store: "ValueStore", expr: Expr) -> "StoreNode":
+        return (
+            ScalarNode(store, expr.type_, expr=expr)
+            if expr.type_.is_scalar
             else ArrayNode(store, expr.type_, expr=expr)
+        )
 
     @property
     def defined(self) -> bool:
@@ -72,9 +76,10 @@ class ScalarNode(StoreNode):
     """
     Store status of a single scalar value.
     """
+
     kind = NodeKind.SCALAR
 
-    def __init__(self, store: 'ValueStore', ty: Type, expr: Optional[Expr] = None):
+    def __init__(self, store: "ValueStore", ty: Type, expr: Optional[Expr] = None):
         super().__init__(store)
         self.status_ = ValueStatus.UNDEFINED
         self.type_ = ty
@@ -101,8 +106,8 @@ class ScalarNode(StoreNode):
         if self.solved and value != self.value_:
             raise StoreError(
                 self,
-                f'Newly provided value {value} is not consistent with last solved value '
-                f'{self.value_}.'
+                f"Newly provided value {value} is not consistent with last solved value "
+                f"{self.value_}.",
             )
         self.status_ = ValueStatus.SOLVED
         self.value_ = value
@@ -128,9 +133,10 @@ class ArrayNode(StoreNode):
     """
     Store nodes of elements in an array.
     """
+
     kind = NodeKind.ARRAY
 
-    def __init__(self, store: 'ValueStore', ty: Type, expr: Optional[Expr] = None):
+    def __init__(self, store: "ValueStore", ty: Type, expr: Optional[Expr] = None):
         super().__init__(store)
         self.len_ = ScalarNode(store, INT)
         self.type_ = ty
@@ -174,8 +180,11 @@ class ArrayNode(StoreNode):
         self.expr_ = expr
         if expr.kind == ExprKind.TUPLE:
             self.set_elem_defined(cast(Tuple, expr))
-        elif expr.kind == ExprKind.LIST and not self.len_defined and \
-                cast(List, expr).len_.kind == ExprKind.VAR:
+        elif (
+            expr.kind == ExprKind.LIST
+            and not self.len_defined
+            and cast(List, expr).len_.kind == ExprKind.VAR
+        ):
             self.set_len_defined(cast(List, expr).len_)
 
     def set_defined(self, expr: Expr):
@@ -184,8 +193,10 @@ class ArrayNode(StoreNode):
     def set_len_solved(self, length: int):
         self.len_.set_solved(length)
         if len(self.children_) == 0:
-            self.children_ = [StoreNode.create_undefined(self.store_, self.type_.elem_type)
-                              for _ in range(length)]
+            self.children_ = [
+                StoreNode.create_undefined(self.store_, self.type_.elem_type)
+                for _ in range(length)
+            ]
 
     def set_elem_defined(self, tup: Tuple):
         if not self.len_solved:
@@ -216,7 +227,8 @@ class ValueStore:
     def __init__(self, attrs: Iterable[Attr]):
         cp = CopyExpr()
         self.attrs_ = list(
-            (a.name_, StoreNode.create_defined(self, cp.copy(a.expr_))) for a in attrs)
+            (a.name_, StoreNode.create_defined(self, cp.copy(a.expr_))) for a in attrs
+        )
         self._attr_dict = dict(self.attrs_)
         self._solved_var_: Dict[Ref[Var], ValueType] = {}
         self.in_shapes_ = ArrayNode(self, ListType(ListType(INT)))
@@ -226,9 +238,7 @@ class ValueStore:
 
     def query_attr(self, name: str, *ind: int):
         if name not in self._attr_dict:
-            raise StoreError(
-                None, f'Attribute {name} not defined.'
-            )
+            raise StoreError(None, f"Attribute {name} not defined.")
         return self._query_node(self._attr_dict[name], *ind)
 
     def query_shape(self, kind: TensorKind, *ind: int):
@@ -259,7 +269,7 @@ class ValueStore:
     def _query_node(node: StoreNode, *ind: int) -> Optional[StoreNode]:
         for idx in ind:
             if node.kind == NodeKind.SCALAR:
-                raise RuntimeError('Cannot access scalar node by index.')
+                raise RuntimeError("Cannot access scalar node by index.")
             arr_node = cast(ArrayNode, node)
             if not arr_node.len_solved:
                 return None
@@ -268,7 +278,9 @@ class ValueStore:
             node = arr_node.children_[idx]
         return node
 
-    def set_var_solved(self, var: Var, value: ValueType, node: Optional[StoreNode] = None):
+    def set_var_solved(
+        self, var: Var, value: ValueType, node: Optional[StoreNode] = None
+    ):
         var_ref = Ref(var)
         if var_ref not in self._solved_var_:
             self._solved_var_.update()
@@ -276,8 +288,8 @@ class ValueStore:
         elif self._solved_var_[var_ref] != value:
             raise StoreError(
                 node,
-                f'Solved value {value} is not consistent with its previous result '
-                f'{self._solved_var_[var_ref]}.'
+                f"Solved value {value} is not consistent with its previous result "
+                f"{self._solved_var_[var_ref]}.",
             )
 
     def query_var(self, var: Var) -> Optional[ValueType]:
@@ -287,27 +299,38 @@ class ValueStore:
         store_print = StorePrinter()
         expr_print = ExprPrinter(buf, [])
         buf.write(cls_name(self))
-        buf.write_named_multi([
-            ('attrs', lambda: buf.write_named_multi(
-                list(map(lambda p: (p[0], lambda: store_print.visit(p[1], buf)), self.attrs_)),
-                prefix='[', suffix=']'
-            )),
-            ('in_shapes', lambda: store_print.visit(self.in_shapes_, buf)),
-            ('in_dtypes', lambda: store_print.visit(self.in_dtypes_, buf)),
-            ('out_shapes', lambda: store_print.visit(self.out_shapes_, buf)),
-            ('out_dtypes', lambda: store_print.visit(self.out_dtypes_, buf)),
-            ('solved_vars', lambda: self._print_solved(expr_print, buf))
-        ])
+        buf.write_named_multi(
+            [
+                (
+                    "attrs",
+                    lambda: buf.write_named_multi(
+                        list(
+                            map(
+                                lambda p: (p[0], lambda: store_print.visit(p[1], buf)),
+                                self.attrs_,
+                            )
+                        ),
+                        prefix="[",
+                        suffix="]",
+                    ),
+                ),
+                ("in_shapes", lambda: store_print.visit(self.in_shapes_, buf)),
+                ("in_dtypes", lambda: store_print.visit(self.in_dtypes_, buf)),
+                ("out_shapes", lambda: store_print.visit(self.out_shapes_, buf)),
+                ("out_dtypes", lambda: store_print.visit(self.out_dtypes_, buf)),
+                ("solved_vars", lambda: self._print_solved(expr_print, buf)),
+            ]
+        )
 
-    def _print_solved(self, printer: 'ExprPrinter', buf: CodeBuffer):
-        buf.writeln('{')
+    def _print_solved(self, printer: "ExprPrinter", buf: CodeBuffer):
+        buf.writeln("{")
         with buf.indent():
             for ref, value in self._solved_var_.items():
                 printer.visit_var(ref.obj_, None)
-                buf.write('=')
+                buf.write("=")
                 buf.write(str(value))
-                buf.writeln(',')
-        buf.write('}')
+                buf.writeln(",")
+        buf.write("}")
 
     def __repr__(self):
         buf = CodeBuffer()
@@ -315,8 +338,8 @@ class ValueStore:
         return str(buf)
 
 
-A = TypeVar('A')
-R = TypeVar('R')
+A = TypeVar("A")
+R = TypeVar("R")
 
 
 class StoreVisitor(Generic[A, R]):
@@ -342,22 +365,26 @@ class StoreVisitor(Generic[A, R]):
 class StorePrinter(StoreVisitor[CodeBuffer, None]):
     def visit_scalar(self, node: ScalarNode, buf: CodeBuffer):
         buf.write(cls_name(node))
-        items = [('status', lambda: buf.write(node.status_.name))]
+        items = [("status", lambda: buf.write(node.status_.name))]
         if node.expr_ is not None:
-            items.append(('expr', lambda: print_expr(node.expr_, buf, [])))
+            items.append(("expr", lambda: print_expr(node.expr_, buf, [])))
         if node.value_ is not None:
-            items.append(('value', lambda: buf.write(repr(node.value_))))
+            items.append(("value", lambda: buf.write(repr(node.value_))))
         buf.write_named_multi(items)
 
     def visit_array(self, node: ArrayNode, buf: CodeBuffer):
         buf.write(cls_name(node))
-        items = [('len', lambda: self.visit(node.len_, buf))]
+        items = [("len", lambda: self.visit(node.len_, buf))]
         if node.expr_ is not None:
-            items.append(('expr', lambda: print_expr(node.expr_, buf, [])))
+            items.append(("expr", lambda: print_expr(node.expr_, buf, [])))
         items.append(
-            ('children', lambda: buf.write_pos_multi(
-                list(map(lambda n: lambda: self.visit(n, buf), node.children_)),
-                prefix='[', suffix=']'
-            ))
+            (
+                "children",
+                lambda: buf.write_pos_multi(
+                    list(map(lambda n: lambda: self.visit(n, buf), node.children_)),
+                    prefix="[",
+                    suffix="]",
+                ),
+            )
         )
         buf.write_named_multi(items)

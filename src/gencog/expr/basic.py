@@ -1,6 +1,16 @@
 import typing as t
 from enum import Enum, IntEnum, auto
-from typing import Any, Callable, Dict, Optional, Union, List, Iterator, Iterable, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Optional,
+    Union,
+    List,
+    Iterator,
+    Iterable,
+    TypeVar,
+)
 from warnings import warn
 
 from .ty import Type, TypeKind, ValueType, DataType, type_py_value, BOOL, INT, STR
@@ -49,89 +59,96 @@ class Expr:
     """
     Base class for constraint expression.
     """
+
     kind: ExprKind
 
-    def __init__(self, sub_expr: List['Expr'], ty: Optional[Type] = None):
+    def __init__(self, sub_expr: List["Expr"], ty: Optional[Type] = None):
         self.type_: Optional[Type] = ty
         self.sub_expr_ = sub_expr
 
-    def __add__(self, other: 'ExprLike'):
+    def __add__(self, other: "ExprLike"):
         return Arith(ArithOp.ADD, self, other)
 
-    def __radd__(self, other: 'ExprLike'):
+    def __radd__(self, other: "ExprLike"):
         return Arith(ArithOp.ADD, other, self)
 
-    def __sub__(self, other: 'ExprLike'):
+    def __sub__(self, other: "ExprLike"):
         return Arith(ArithOp.SUB, self, other)
 
-    def __rsub__(self, other: 'ExprLike'):
+    def __rsub__(self, other: "ExprLike"):
         return Arith(ArithOp.SUB, other, self)
 
-    def __mul__(self, other: 'ExprLike'):
+    def __mul__(self, other: "ExprLike"):
         return Arith(ArithOp.MUL, self, other)
 
-    def __rmul__(self, other: 'ExprLike'):
+    def __rmul__(self, other: "ExprLike"):
         return Arith(ArithOp.MUL, other, self)
 
-    def __truediv__(self, other: 'ExprLike'):
+    def __truediv__(self, other: "ExprLike"):
         return Arith(ArithOp.DIV, self, other)
 
-    def __rtruediv__(self, other: 'ExprLike'):
+    def __rtruediv__(self, other: "ExprLike"):
         return Arith(ArithOp.DIV, other, self)
 
-    def __floordiv__(self, other: 'ExprLike'):
+    def __floordiv__(self, other: "ExprLike"):
         return Arith(ArithOp.DIV, self, other)
 
-    def __rfloordiv__(self, other: 'ExprLike'):
+    def __rfloordiv__(self, other: "ExprLike"):
         return Arith(ArithOp.DIV, other, self)
 
-    def __mod__(self, other: 'ExprLike'):
+    def __mod__(self, other: "ExprLike"):
         return Arith(ArithOp.MOD, self, other)
 
-    def __rmod__(self, other: 'ExprLike'):
+    def __rmod__(self, other: "ExprLike"):
         return Arith(ArithOp.MOD, other, self)
 
-    def max(self, other: 'ExprLike'):
+    def max(self, other: "ExprLike"):
         return Arith(ArithOp.MAX, self, other)
 
-    def min(self, other: 'ExprLike'):
+    def min(self, other: "ExprLike"):
         return Arith(ArithOp.MIN, self, other)
 
-    def __eq__(self, other: 'ExprLike'):
+    def __eq__(self, other: "ExprLike"):
         return Cmp(CmpOp.EQ, self, other)
 
-    def __ne__(self, other: 'ExprLike'):
+    def __ne__(self, other: "ExprLike"):
         return Cmp(CmpOp.NE, self, other)
 
-    def __lt__(self, other: 'ExprLike'):
+    def __lt__(self, other: "ExprLike"):
         return Cmp(CmpOp.LT, self, other)
 
-    def __le__(self, other: 'ExprLike'):
+    def __le__(self, other: "ExprLike"):
         return Cmp(CmpOp.LE, self, other)
 
-    def __gt__(self, other: 'ExprLike'):
+    def __gt__(self, other: "ExprLike"):
         return Cmp(CmpOp.GT, self, other)
 
-    def __ge__(self, other: 'ExprLike'):
+    def __ge__(self, other: "ExprLike"):
         return Cmp(CmpOp.GE, self, other)
 
-    def __and__(self, other: 'ExprLike'):
+    def __and__(self, other: "ExprLike"):
         return And(self, other)
 
-    def __or__(self, other: 'ExprLike'):
+    def __or__(self, other: "ExprLike"):
         return Or(self, other)
 
-    def __xor__(self, other: 'ExprLike'):
+    def __xor__(self, other: "ExprLike"):
         return Cmp(CmpOp.NE, self, other)
 
-    def __getitem__(self, item: 'ExprLike'):
+    def __getitem__(self, item: "ExprLike"):
         from .array import GetItem, Slice
+
         if isinstance(item, Range):
             return Slice(self, item)
         elif isinstance(item, slice):
             from . import Len
-            return Slice(self, Range(begin=unwrap_or(item.start, 0),
-                                     end=unwrap_or(item.stop, Len(self))))
+
+            return Slice(
+                self,
+                Range(
+                    begin=unwrap_or(item.start, 0), end=unwrap_or(item.stop, Len(self))
+                ),
+            )
         else:
             return GetItem(self, item)
 
@@ -164,7 +181,7 @@ def to_expr(e: ExprLike) -> Expr:
         return Tuple(*e)
     else:
         raise TypeError(
-            f'Cannot convert Python object of type {cls_name(e)} to constraint expression.'
+            f"Cannot convert Python object of type {cls_name(e)} to constraint expression."
         )
 
 
@@ -172,6 +189,7 @@ class Const(Expr):
     """
     Constant whose value is known during constraint definition.
     """
+
     kind = ExprKind.CONST
 
     def __init__(self, val: ValueType):
@@ -179,30 +197,35 @@ class Const(Expr):
         self.val_ = val
         self.type_ = type_py_value(val)
         if not self.type_.is_scalar:
-            raise TypeError('Cannot create constant of non-scalar type.')
+            raise TypeError("Cannot create constant of non-scalar type.")
 
 
 class Range(Expr):
     """
     Range [begin, end) of a primitive value.
     """
+
     kind = ExprKind.RANGE
 
     valid_type_kinds = [TypeKind.int, TypeKind.float]
 
-    def __init__(self, begin: Optional[ExprLike] = 0, end: Optional[ExprLike] = None,
-                 ty: Optional[Type] = None):
+    def __init__(
+        self,
+        begin: Optional[ExprLike] = 0,
+        end: Optional[ExprLike] = None,
+        ty: Optional[Type] = None,
+    ):
         self.begin_ = map_opt(to_expr, begin)
         self.end_ = map_opt(to_expr, end)
         super().__init__(filter_none([self.begin_, self.end_]), ty=ty)
 
     def require_begin(self):
         if self.begin_ is None:
-            raise ValueError('Range begin cannot be None.')
+            raise ValueError("Range begin cannot be None.")
 
     def require_end(self):
         if self.end_ is None:
-            raise ValueError('Range end cannot be None.')
+            raise ValueError("Range end cannot be None.")
 
     def require_both(self):
         self.require_begin()
@@ -219,14 +242,20 @@ class Var(Expr):
     constraint variable will be created each time a `Var` is evaluated during constraint
     instantiation.
     """
+
     kind = ExprKind.VAR
 
-    def __init__(self, ty: Optional[Type] = None, ran: Optional[Range] = None,
-                 choices: Optional[ExprLike] = None, tmpl: bool = False):
+    def __init__(
+        self,
+        ty: Optional[Type] = None,
+        ran: Optional[Range] = None,
+        choices: Optional[ExprLike] = None,
+        tmpl: bool = False,
+    ):
         self.ran_ = ran
         self.choices_ = map_opt(to_expr, choices)
         if self.choices_ is not None and self.ran_ is not None:
-            warn('Choices and range are both provided. Range is ignored.')
+            warn("Choices and range are both provided. Range is ignored.")
             self.ran_ = None
         self.tmpl_ = tmpl
         # noinspection PyTypeChecker
@@ -240,13 +269,14 @@ class Symbol(Expr):
     Symbolic value during constraint definition. It is used as a bounded variable in nested
     constraint expression such as `List`.
     """
+
     kind = ExprKind.SYMBOL
 
     def __init__(self, ty: Optional[Type] = None):
         super().__init__([], ty=ty)
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Env(Iterable[T]):
@@ -254,18 +284,18 @@ class Env(Iterable[T]):
     Environment, mapping from symbol to object.
     """
 
-    def __init__(self, prev: Optional['Env'] = None, sym: Optional[Symbol] = None,
-                 val: Optional[T] = None):
+    def __init__(
+        self,
+        prev: Optional["Env"] = None,
+        sym: Optional[Symbol] = None,
+        val: Optional[T] = None,
+    ):
         self.prev_ = prev
         self.sym_ = sym
         if self.prev_ is not None and sym is None:
-            raise ValueError(
-                'Cannot create empty mapping.'
-            )
+            raise ValueError("Cannot create empty mapping.")
         if self.sym_ is not None and val is None:
-            raise ValueError(
-                'Value cannot be None if symbol is not None.'
-            )
+            raise ValueError("Value cannot be None if symbol is not None.")
         self.val_ = val
 
     @property
@@ -308,19 +338,20 @@ class EnvIter(Iterator[T]):
 
 
 class ArithOp(Enum):
-    ADD = '+'
-    SUB = '-'
-    MUL = '*'
-    DIV = '/'
-    MOD = '%'
-    MAX = 'max'
-    MIN = 'min'
+    ADD = "+"
+    SUB = "-"
+    MUL = "*"
+    DIV = "/"
+    MOD = "%"
+    MAX = "max"
+    MIN = "min"
 
 
 class Arith(Expr):
     """
     Arithmetic expressions.
     """
+
     kind = ExprKind.ARITH
 
     op_funcs: Dict[ArithOp, Dict[Type, Callable[[Any, Any], Any]]] = {
@@ -347,7 +378,9 @@ class Arith(Expr):
         },
     }
 
-    def __init__(self, op: ArithOp, lhs: ExprLike, rhs: ExprLike, ty: Optional[Type] = None):
+    def __init__(
+        self, op: ArithOp, lhs: ExprLike, rhs: ExprLike, ty: Optional[Type] = None
+    ):
         self.op_ = op
         self.lhs_ = to_expr(lhs)
         self.rhs_ = to_expr(rhs)
@@ -355,18 +388,19 @@ class Arith(Expr):
 
 
 class CmpOp(Enum):
-    EQ = '=='
-    NE = '!='
-    LT = '<'
-    LE = '<='
-    GT = '>'
-    GE = '>='
+    EQ = "=="
+    NE = "!="
+    LT = "<"
+    LE = "<="
+    GT = ">"
+    GE = ">="
 
 
 class Cmp(Expr):
     """
     Comparison expressions.
     """
+
     kind = ExprKind.CMP
 
     op_funcs: Dict[CmpOp, Dict[Type, Callable[[Any, Any], bool]]] = {
@@ -405,6 +439,7 @@ class Not(Expr):
     """
     Boolean negation.
     """
+
     kind = ExprKind.NOT
 
     def __init__(self, prop: ExprLike):
@@ -417,6 +452,7 @@ class And(Expr):
     Conjunction of two or more boolean expressions. It is suggested that the constructor is
     directly used when there are more than two clauses.
     """
+
     kind = ExprKind.AND
 
     def __init__(self, *clauses: ExprLike):
@@ -429,6 +465,7 @@ class Or(Expr):
     Disjunction of two or more boolean expressions. It is suggested that the constructor is
     directly used when there are more than two clauses.
     """
+
     kind = ExprKind.OR
 
     def __init__(self, *clauses: ExprLike):
@@ -440,10 +477,16 @@ class ForAll(Expr):
     """
     Universal quantifier for propositions defined in an integer range.
     """
+
     kind = ExprKind.FORALL
 
-    def __init__(self, ran: Range, body_f: Optional[Callable[[Symbol], ExprLike]] = None,
-                 idx: Optional[Symbol] = None, body: Optional[Expr] = None):
+    def __init__(
+        self,
+        ran: Range,
+        body_f: Optional[Callable[[Symbol], ExprLike]] = None,
+        idx: Optional[Symbol] = None,
+        body: Optional[Expr] = None,
+    ):
         ran.require_both()
         self.ran_ = ran
         if body_f is not None:
@@ -460,10 +503,16 @@ class Cond(Expr):
     """
     Conditional expression.
     """
+
     kind = ExprKind.COND
 
-    def __init__(self, pred: ExprLike, true_br: ExprLike, fls_br: ExprLike,
-                 ty: Optional[Type] = None):
+    def __init__(
+        self,
+        pred: ExprLike,
+        true_br: ExprLike,
+        fls_br: ExprLike,
+        ty: Optional[Type] = None,
+    ):
         self.pred_ = to_expr(pred)
         self.tr_br_ = to_expr(true_br)
         self.fls_br_ = to_expr(fls_br)
@@ -474,6 +523,7 @@ class GetAttr(Expr):
     """
     Get attribute value from operator.
     """
+
     kind = ExprKind.ATTR
 
     def __init__(self, name: str, ty: Optional[Type] = None):
@@ -489,6 +539,7 @@ class Dummy(Expr):
     """
     Indicate unknown expression.
     """
+
     kind = ExprKind.DUMMY
 
     def __init__(self):

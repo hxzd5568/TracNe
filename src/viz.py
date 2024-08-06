@@ -25,6 +25,7 @@ from tvm.contrib.relay_viz.interface import DefaultVizParser
 
 
 def save_irmod_viz(irmod, basename):
-    viz = relay_viz.RelayVisualizer(irmod, plotter=DotPlotter(), parser=DefaultVizParser())
+    viz = relay_viz.RelayVisualizer(
+        irmod, plotter=DotPlotter(), parser=DefaultVizParser()
+    )
     viz.render(basename)
-    

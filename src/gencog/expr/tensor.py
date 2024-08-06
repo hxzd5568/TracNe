@@ -5,8 +5,8 @@ from .ty import ListType, INT, DTYPE
 
 
 class TensorKind(Enum):
-    input = 'IN'
-    output = 'OUT'
+    input = "IN"
+    output = "OUT"
 
 
 class TensorDesc:
@@ -55,6 +55,7 @@ class Num(Expr):
     """
     Number of tensors in input/output list.
     """
+
     kind = ExprKind.NUM
 
     def __init__(self, t_kind: TensorKind):
@@ -66,6 +67,7 @@ class Shape(Expr):
     """
     Get shape of a tensor.
     """
+
     kind = ExprKind.SHAPE
 
     def __init__(self, tensor: TensorDesc):
@@ -85,6 +87,7 @@ class Rank(Expr):
     """
     Get rank of a tensor.
     """
+
     kind = ExprKind.RANK
 
     def __init__(self, tensor: TensorDesc):
@@ -104,6 +107,7 @@ class GetDType(Expr):
     """
     Get data type of a tensor.
     """
+
     kind = ExprKind.DTYPE
 
     def __init__(self, tensor: TensorDesc):
@@ -123,6 +127,7 @@ class LayoutIndex(Expr):
     """
     Locate index of a dimension in tensor layout.
     """
+
     kind = ExprKind.LAYOUT_INDEX
 
     def __init__(self, layout: ExprLike, dim: ExprLike):
@@ -135,6 +140,7 @@ class LayoutMap(Expr):
     """
     Specify a tensor shape in source layout, then map it to the target layout.
     """
+
     kind = ExprKind.LAYOUT_MAP
 
     def __init__(self, tgt: ExprLike, src: ExprLike, src_shape: ExprLike):

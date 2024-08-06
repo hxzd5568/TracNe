@@ -37,7 +37,8 @@ from tvm import relay
 from tvm.contrib import graph_executor, utils
 from tvm.relay.frontend.common import infer_type
 from tvm.relay.build_module import bind_params_by_name
-#from relay.utils.tag_span import _create_span, _set_span, _verify_structural_equal_with_span
+
+# from relay.utils.tag_span import _create_span, _set_span, _verify_structural_equal_with_span
 
 import onnx
 import onnxruntime.backend
@@ -152,7 +153,9 @@ def get_tvm_output(
             # Its possible for some onnx inputs to not be needed in the tvm
             # module, confirm its present before setting.
             # pylint: disable=unnecessary-list-index-lookup
-            m.set_input(input_names[i], tvm.nd.array(input_data[i].astype(input_data[i].dtype)))
+            m.set_input(
+                input_names[i], tvm.nd.array(input_data[i].astype(input_data[i].dtype))
+            )
     else:
         m.set_input(input_names, tvm.nd.array(input_data.astype(input_data.dtype)))
 
@@ -183,6 +186,7 @@ def get_onnxruntime_output(model, inputs):
     if len(output) == 1:
         output = output[0]
     return output
+
 
 def get_ort_out(
     model,

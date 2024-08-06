@@ -1,5 +1,5 @@
 import tvm
-from tvm import relay,runtime
+from tvm import relay, runtime
 import os
 import numpy as np
 import queue
@@ -13,7 +13,8 @@ from argparse import Namespace, ArgumentParser
 from typing import Iterable, List, cast, Optional, Dict
 import sys
 from google.protobuf.json_format import MessageToDict
-sys.path.append('..')
+
+sys.path.append("..")
 from src.base_utils import Checkor
 from src.fuzztorch import Fuzzer
 from multiprocessing import Process
@@ -28,34 +29,39 @@ import psutil
 #     return info.uss / 1024. / 1024. / 1024.
 
 case_path = os.getcwd()
-case_path = './dnn/'
+case_path = "./dnn/"
 args = sys.argv
 
-if '/' in args[1]:
+if "/" in args[1]:
     dump_path = args[1]
-    flag =1
-    case_path = dump_path.split('out')[0]
-    caseid = dump_path.split('out')[1][1:]
+    flag = 1
+    case_path = dump_path.split("out")[0]
+    caseid = dump_path.split("out")[1][1:]
     caseids = [caseid]
-elif '-' in args[1]:
-    l,r = int(args[1].split('-')[0]),\
-            int(args[1].split('-')[1])+1
-    caseids = [str(i) for i in range(l,r,1)]
+elif "-" in args[1]:
+    l, r = int(args[1].split("-")[0]), int(args[1].split("-")[1]) + 1
+    caseids = [str(i) for i in range(l, r, 1)]
 else:
     caseids = args[1:]
 
 
 for caseid in caseids:
-    dump_path = case_path+'/out/'+caseid
+    dump_path = case_path + "/out/" + caseid
     print(dump_path)
-    fuzzer = Fuzzer(path =case_path,low=0,high=1,case_id=caseid,fuzzmode='DEMC2',)
+    fuzzer = Fuzzer(
+        path=case_path,
+        low=0,
+        high=1,
+        case_id=caseid,
+        fuzzmode="DEMC2",
+    )
     # fuzzer.replay_error()
     # for i in range(3):
     # fuzzer.fastv()
     # fuzzer.fuzzps()
     fuzzer.replay_error()
     # exit()
-    fuzzer.bigflag =1
+    fuzzer.bigflag = 1
     # pfuzzer = Process(target=fuzzer.fuzzps)
     # try:
     #     pfuzzer.start()
@@ -67,7 +73,6 @@ for caseid in caseids:
     # pfuzzer.close()
     # del pfuzzer
     del fuzzer
-
 
     # trace_error = Trace_error(dump_path)
     # # trace_error.get_trace_message()

@@ -8,8 +8,8 @@ from .. import Op, DataType
 from ..solve import TensorType
 from ..spec import max_rank, common_dtypes
 
-T = TypeVar('T')
-K = TypeVar('K')
+T = TypeVar("T")
+K = TypeVar("K")
 
 
 class OpLookup:
@@ -24,10 +24,18 @@ class OpLookup:
 
         # Create table from different properties
         op_specs = dict((op, op.spec) for op in ops)
-        self._first_ranks = StaticSetTable(range(1, max_rank + 1), ops, self._bit_map,
-                                           lambda op: op_specs[op].first_rank_choices)
-        self._first_dtypes = StaticSetTable(common_dtypes, ops, self._bit_map,
-                                            lambda op: op_specs[op].first_dtype_choices)
+        self._first_ranks = StaticSetTable(
+            range(1, max_rank + 1),
+            ops,
+            self._bit_map,
+            lambda op: op_specs[op].first_rank_choices,
+        )
+        self._first_dtypes = StaticSetTable(
+            common_dtypes,
+            ops,
+            self._bit_map,
+            lambda op: op_specs[op].first_dtype_choices,
+        )
 
     def by_first_type(self, ty: TensorType) -> Iterable[Op]:
         a = self._first_ranks[ty.rank] & self._first_dtypes[ty.dtype_]
@@ -52,11 +60,15 @@ class ValueLookup:
     def values(self):
         return self._bit_map.objs
 
-    def by_choices(self, rank_choices: Iterable[int], dtype_choices: Iterable[DataType]):
-        rank_matched = reduce(lambda a, r: a | self._ranks[r], rank_choices,
-                              self._bit_map.empty)
-        dtype_matched = reduce(lambda a, t: a | self._dtypes[t], dtype_choices,
-                               self._bit_map.empty)
+    def by_choices(
+        self, rank_choices: Iterable[int], dtype_choices: Iterable[DataType]
+    ):
+        rank_matched = reduce(
+            lambda a, r: a | self._ranks[r], rank_choices, self._bit_map.empty
+        )
+        dtype_matched = reduce(
+            lambda a, t: a | self._dtypes[t], dtype_choices, self._bit_map.empty
+        )
         return self._bit_map.decode(rank_matched & dtype_matched)
 
 
@@ -83,7 +95,7 @@ class BitMap(Generic[T]):
 
     def set(self, a: bitarray, o: T, b: bool = True):
         if o not in self:
-            raise ValueError(f'Object {o} is not in universal set.')
+            raise ValueError(f"Object {o} is not in universal set.")
         a[self._idx_map[o]] = b
 
     def encode(self, objs: Iterable[T]) -> bitarray:
@@ -94,9 +106,7 @@ class BitMap(Generic[T]):
 
     def decode(self, a: bitarray) -> Iterable[T]:
         if len(a) != len(self):
-            raise ValueError(
-                f'Expect bit array of length {len(self)}, got {len(a)}.'
-            )
+            raise ValueError(f"Expect bit array of length {len(self)}, got {len(a)}.")
         return (self._objs[i] for i, b in enumerate(a) if b)
 
     def __len__(self):
@@ -126,7 +136,7 @@ class DynamicBitMap(BitMap[T]):
 
     def add(self, obj: T):
         if obj in self:
-            raise ValueError(f'Object {obj} already in universal set.')
+            raise ValueError(f"Object {obj} already in universal set.")
         idx = len(self._objs)
         self._objs.append(obj)
         self._idx_map[obj] = idx
@@ -150,7 +160,7 @@ class SetTable(Generic[T, K]):
 
     def _check_key(self, k: K):
         if k not in self._table:
-            raise ValueError(f'Undefined key {k}.')
+            raise ValueError(f"Undefined key {k}.")
 
 
 class StaticSetTable(SetTable[T, K]):
@@ -158,8 +168,13 @@ class StaticSetTable(SetTable[T, K]):
     Static set table, where objects are known before construction.
     """
 
-    def __init__(self, all_keys: Iterable[K], objs: Iterable[T], bit_map: StaticBitMap[T],
-                 keys_f: Callable[[T], Iterable[K]]):
+    def __init__(
+        self,
+        all_keys: Iterable[K],
+        objs: Iterable[T],
+        bit_map: StaticBitMap[T],
+        keys_f: Callable[[T], Iterable[K]],
+    ):
         super().__init__(all_keys, bit_map)
         self._bit_map = bit_map
         for o in objs:

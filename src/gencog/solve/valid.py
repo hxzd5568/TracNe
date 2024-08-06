@@ -3,15 +3,27 @@ from typing import Dict, Callable, Iterable, Any
 
 from .store import ValueStore, StoreNode, ScalarNode, StoreVisitor, ValueStatus
 from ..expr import Expr, Var, BOOL, INT, FLOAT
-from ..expr.array import GetItem, Len, Concat, Slice, Map, ReduceArray, ReduceRange, \
-    Filter, InSet, Subset, Perm, List
+from ..expr.array import (
+    GetItem,
+    Len,
+    Concat,
+    Slice,
+    Map,
+    ReduceArray,
+    ReduceRange,
+    Filter,
+    InSet,
+    Subset,
+    Perm,
+    List,
+)
 from ..expr.basic import ExprKind, ForAll, GetAttr, Dummy, Cond
 from ..expr.tensor import Num, Rank, Shape, GetDType, LayoutMap, LayoutIndex
 from ..expr.visitor import ExprVisitor
 from ..util import Ref
 
 
-def validate(store: ValueStore, extra: t.List[Expr]) -> 'UnionFind':
+def validate(store: ValueStore, extra: t.List[Expr]) -> "UnionFind":
     """
     Find all valid (solvable) constraint expressions.
 
@@ -76,8 +88,10 @@ class UnionFind:
 
     def all_valid(self) -> Iterable[Expr]:
         items = sorted(self._idx_map.items(), key=lambda p: p[1])
-        return map(lambda p: p[0].obj_,
-                   filter(lambda p: self._valid[self._find_idx(p[1])], items))
+        return map(
+            lambda p: p[0].obj_,
+            filter(lambda p: self._valid[self._find_idx(p[1])], items),
+        )
 
     def _find_expr(self, e: Expr):
         return self._find_idx(self._get_idx(e))
@@ -101,7 +115,7 @@ class UnionFind:
 
 
 class StoreFinder(StoreVisitor[None, None]):
-    def __init__(self, expr_find: 'ExprFinder'):
+    def __init__(self, expr_find: "ExprFinder"):
         super().__init__()
         self._find = expr_find
 
@@ -121,7 +135,7 @@ class ExprFinder(ExprVisitor[Expr, None]):
     Find all valid variables in a specification.
     """
 
-    def __init__(self, store: ValueStore, union: 'UnionFind'):
+    def __init__(self, store: ValueStore, union: "UnionFind"):
         super().__init__()
         self._store = store
         self._union = union
@@ -138,7 +152,9 @@ class ExprFinder(ExprVisitor[Expr, None]):
             # solve it.
             self._union.union(var, root)
         elif var is not root:
-            self._union.set_invalid(root)  # the constraint referring to it cannot be solved now
+            self._union.set_invalid(
+                root
+            )  # the constraint referring to it cannot be solved now
         if var.ran_ is not None:
             self.visit(var.ran_, var)
         if var.choices_ is not None:

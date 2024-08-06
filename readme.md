@@ -13,8 +13,8 @@ To diagnose compiler-introduced numerical errors in NN models, we introduce an a
 | Frontend Models |     ONNX |PyTorch   |   TensorFlow2    |
 | ------------ | ------------------------------------ | ----------------------------------------------- | ---------------------------------------------- |
 | [`TVM`](https://github.com/apache/tvm)      | ✅                                    | ✅                                               | ✅                                              |
-| [`XLA`](https://www.tensorflow.org/xla)  |                                   |                                                 |     🔨                                             | 
-| [`GLOW`](https://pytorch.org/docs/stable/jit.html)      |                                    | 🔨                                               
+| [`XLA`](https://www.tensorflow.org/xla)  |                                   |                                                 |     🔨                                             |
+| [`GLOW`](https://pytorch.org/docs/stable/jit.html)      |                                    | 🔨
 
 ✅: Supported; 🔨: Developing;
 ## Contents
@@ -33,13 +33,13 @@ To diagnose compiler-introduced numerical errors in NN models, we introduce an a
 ## Dependency
 
 ###  Python enviroment
-TracNe is written in Python. Run `pip install -r requirements.txt` to get python dependencies. 
+TracNe is written in Python. Run `pip install -r requirements.txt` to get python dependencies.
 ###  Compiler configuration
-* TVM should be built in debugging mode. 
+* TVM should be built in debugging mode.
   * Download tvm code of version 0.12.dev0 at least.
   * In config.cmake set the USE_PROFILER flag to ON.
   * [Build tvm from source](https://tvm.apache.org/docs/install/from_source.html#developers-get-source-from-github)
-  
+
 
 ## Preparing Models and Dataset
 
@@ -56,7 +56,7 @@ cd tests
 python test_fuzzer.py  model_dir --low 0 --high 1 --optlevel 5
 ```
 
-The tested model should be placed in `out/model_dir`. After running the python script, the erroneous input triggering maximal errors will be stored in this directory. Augments low and high are the constraints for the input range. Users can control isolation granularity by $granularity$. Default number 64 is enough for error localization. It should be better than 4. 
+The tested model should be placed in `out/model_dir`. After running the python script, the erroneous input triggering maximal errors will be stored in this directory. Augments low and high are the constraints for the input range. Users can control isolation granularity by $granularity$. Default number 64 is enough for error localization. It should be better than 4.
 
 If the model is secure under the selected compilation option and input range, the errors found by the process are zero or less than the tolerance. Otherwise, the model is suspectable to the compilers' optimization.
 
@@ -102,7 +102,7 @@ We have provided comparison methods to evaluate the performance and efficiency o
 
 
 ```shell
-python relay_fuzzer.py model_dir --method MCMC/DEMC/MEGA 
+python relay_fuzzer.py model_dir --method MCMC/DEMC/MEGA
 ```
 
 MEGA is our detection algorithm, which MCMC is from [Yu et al.](https://ieeexplore.ieee.org/document/10123640/) and DEMC is devised by [Yi et al.](https://doi.org/10.1145/3290369)
@@ -120,7 +120,7 @@ This method is implemented following [Guo et al.](https://ieeexplore.ieee.org/do
 
 ## Support New DL Compilers
 
-The utilities for searching and tracing methods can be reused, e.g., mutate_utils.py and fuzzer.py. 
+The utilities for searching and tracing methods can be reused, e.g., mutate_utils.py and fuzzer.py.
 
 What is required for new DL compilers is to update the following:
 * build_workload : function in base_utils.py to compile models and build executable files.

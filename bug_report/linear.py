@@ -15,28 +15,48 @@ para_1 = torch.randn([1000, 2048], dtype=torch.float32)
 para_2 = torch.randn([1000], dtype=torch.float32)
 
 
-
 class linear64(Module):
     def forward(self, *args):
-        return torch.nn.functional.linear(args[0].double(), para_1.double(),para_2.double())
+        return torch.nn.functional.linear(
+            args[0].double(), para_1.double(), para_2.double()
+        )
+
+
 class linear(Module):
     def forward(self, *args):
-        return torch.nn.functional.linear(args[0], para_1,para_2)
+        return torch.nn.functional.linear(args[0], para_1, para_2)
+
+
 m = linear().float().eval()
 m64 = linear64().eval()
 torch_outputs = m(input_data)
 torch_outputs2 = m64(input_data)
 
 trace = torch.jit.trace(m, input_data)
-input_shapes = [('input0', torch.Size([1, 2048]))]
+input_shapes = [("input0", torch.Size([1, 2048]))]
 
-mod, params = relay.frontend.from_pytorch(trace, input_shapes,default_dtype='float32')
+mod, params = relay.frontend.from_pytorch(trace, input_shapes, default_dtype="float32")
 # print(mod)
-with tvm.transform.PassContext(opt_level=1,disabled_pass=['SimplifyExpr',"FoldConstant","BackwardFoldScaleAxis","ForwardFoldScaleAxis",
-"CanonicalizeCast","CanonicalizeOps","AlterOpLayout","FastMath","SplitArgs","InlineGlobals",
-"LabelOps","AnnotateMemoryScope"]#,config={"tir.add_lower_pass": [(3, print_tir)]}
-    ):
-    exe = relay.create_executor('graph', mod=mod, params=params, device=tvm.device('llvm', 0), target='llvm').evaluate()
+with tvm.transform.PassContext(
+    opt_level=1,
+    disabled_pass=[
+        "SimplifyExpr",
+        "FoldConstant",
+        "BackwardFoldScaleAxis",
+        "ForwardFoldScaleAxis",
+        "CanonicalizeCast",
+        "CanonicalizeOps",
+        "AlterOpLayout",
+        "FastMath",
+        "SplitArgs",
+        "InlineGlobals",
+        "LabelOps",
+        "AnnotateMemoryScope",
+    ],  # ,config={"tir.add_lower_pass": [(3, print_tir)]}
+):
+    exe = relay.create_executor(
+        "graph", mod=mod, params=params, device=tvm.device("llvm", 0), target="llvm"
+    ).evaluate()
     # prim_mod, _ = relay.optimize(mod, target='llvm')
     # # tir_mod = relay.transform.ToAnnotatedIR()(mod)
 
@@ -44,13 +64,13 @@ with tvm.transform.PassContext(opt_level=1,disabled_pass=['SimplifyExpr',"FoldCo
     # print(tir_mod)
 
     # for func in tir_mod.functions:
-        # print(func)
-        # print(prim_mod)
+    # print(func)
+    # print(prim_mod)
 # with relay.build_config(opt_level=3):
 #     graph, lib, params = relay.build(mod, target='cuda', params=params)
 #     lib.export_library("compiled_model.tar")
 #     # print(lib.imported_modules[0].get_source())
-input_tvm = {'input0': np.array(input_data, dtype='float64')}
+input_tvm = {"input0": np.array(input_data, dtype="float64")}
 tvm_outputs = exe(**input_tvm).asnumpy()
 
 print(MSE(torch_outputs2.numpy(), tvm_outputs))
@@ -63,7 +83,7 @@ print(MSE(tvm_outputs, torch_outputs.numpy()))
 
 """
 
-tvm split the loop 
+tvm split the loop
 # from tvm.script import tir as T
 
 @T.prim_func

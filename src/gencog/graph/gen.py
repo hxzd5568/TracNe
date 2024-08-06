@@ -2,19 +2,27 @@ from typing import Iterable, List, cast, Optional, Dict
 
 import numpy as np
 from numpy.random import Generator
-from ..expr.ty import  DataType
+from ..expr.ty import DataType
 from .base import Input, Operation, Value, Graph, Output
 from .lookup import OpLookup, ValueLookup
 from ..config import params
 from ..expr.ty import float_dtypes, common_dtypes
 from ..solve import TensorType, TypeSolver, SolveError, OpTypeInfo
 from ..solve.store import ArrayNode, ScalarNode
-from ..spec import Op, TypeSpec, int_expr_choices, expr_choices, max_in_num, max_rank, max_dim
+from ..spec import (
+    Op,
+    TypeSpec,
+    int_expr_choices,
+    expr_choices,
+    max_in_num,
+    max_rank,
+    max_dim,
+)
 from ..util import inc_cnt
 
-max_opr_num: int = params['graph.max_opr_num']
-opr_trials: int = params['graph.opr_trials']
-use_penal: float = params['graph.use_penal']
+max_opr_num: int = params["graph.max_opr_num"]
+opr_trials: int = params["graph.opr_trials"]
+use_penal: float = params["graph.use_penal"]
 
 
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
@@ -62,7 +70,8 @@ class GraphGenerator:
         graph = Graph(inputs, outputs, oprs)
 
         return graph
-    def imagegenerate(self,imageshape,imagedtype,Max_opr_num=None):
+
+    def imagegenerate(self, imageshape, imagedtype, Max_opr_num=None):
         if Max_opr_num is not None:
             max_opr_num = Max_opr_num
         # Initialization
@@ -82,9 +91,9 @@ class GraphGenerator:
 
             # Choose an operator whose first input matches this value
             op = self._sample_op(value)
-            if 'conv' in  op.name_:
-                continue 
-        
+            if "conv" in op.name_:
+                continue
+
             # Generate operation vertex
             opr = self._gen_opr(op, value, value_lu, inputs)
 
@@ -97,7 +106,8 @@ class GraphGenerator:
         outputs = [Output(v) for v in value_lu.values if len(v.uses_) == 0]
         graph = Graph(inputs, outputs, oprs)
         return graph
-    def multi_inputgraphgenerate(self,imageshapes,imagedtypes,Max_opr_num=None):
+
+    def multi_inputgraphgenerate(self, imageshapes, imagedtypes, Max_opr_num=None):
         if Max_opr_num is not None:
             max_opr_num = Max_opr_num
         # Initialization
@@ -106,11 +116,11 @@ class GraphGenerator:
         value_lu = ValueLookup()
 
         # Generate initial input
-        for (imageshape,imagedtype) in zip(imageshapes,imagedtypes):
-            if imagedtype =='float16':
-                init_in = Input(TensorType(imageshape,  DataType.f(16)), False)
+        for (imageshape, imagedtype) in zip(imageshapes, imagedtypes):
+            if imagedtype == "float16":
+                init_in = Input(TensorType(imageshape, DataType.f(16)), False)
             else:
-                init_in = Input(TensorType(imageshape,   DataType.f(32)), False)
+                init_in = Input(TensorType(imageshape, DataType.f(32)), False)
             inputs.append(init_in)
             value_lu.add(init_in.value_)
 
@@ -121,9 +131,9 @@ class GraphGenerator:
 
             # Choose an operator whose first input matches this value
             op = self._sample_op(value)
-            if 'conv' in  op.name_:
-                continue 
-        
+            if "conv" in op.name_:
+                continue
+
             # Generate operation vertex
             opr = self._gen_opr(op, value, value_lu, inputs)
 
@@ -136,25 +146,29 @@ class GraphGenerator:
         outputs = [Output(v) for v in value_lu.values if len(v.uses_) == 0]
         graph = Graph(inputs, outputs, oprs)
         return graph
+
     def _gen_input(self):
         rank = self._rng.integers(low=2, high=max_rank, endpoint=True)
-        shape = cast(List[int],
-                     self._rng.integers(low=1, high=max_dim, size=rank, endpoint=True).tolist())
+        shape = cast(
+            List[int],
+            self._rng.integers(low=1, high=max_dim, size=rank, endpoint=True).tolist(),
+        )
         dtype = self._rng.choice(float_dtypes)
-        print(shape,dtype)
+        print(shape, dtype)
         return Input(TensorType(shape, dtype), False)
 
     def _sample_value(self, values: List[Value], add_cnt: Dict[Value, int]):
         num_uses = [len(v.uses_) + add_cnt.get(v, 0) for v in values]
-        scores = softmax(-use_penal * np.array(num_uses, dtype='float32'))
+        scores = softmax(-use_penal * np.array(num_uses, dtype="float32"))
         return self._rng.choice(values, p=scores)
 
     def _sample_op(self, value: Value) -> Op:
         ops = list(self._ops.by_first_type(value.type_))
         return self._rng.choice(ops)
 
-    def _gen_opr(self, op: Op, fst_in: Value, value_lu: ValueLookup, graph_inputs: List[Input]) \
-            -> Optional[Operation]:
+    def _gen_opr(
+        self, op: Op, fst_in: Value, value_lu: ValueLookup, graph_inputs: List[Input]
+    ) -> Optional[Operation]:
         spec = op.spec
         if spec.is_variadic:
             return self._gen_variadic_opr(op, spec, fst_in, value_lu, graph_inputs)
@@ -165,8 +179,14 @@ class GraphGenerator:
                     return opr
             return None
 
-    def _gen_normal_opr(self, op: Op, spec: TypeSpec, fst_in: Value, value_lu: ValueLookup,
-                        graph_inputs: List[Input]) -> Optional[Operation]:
+    def _gen_normal_opr(
+        self,
+        op: Op,
+        spec: TypeSpec,
+        fst_in: Value,
+        value_lu: ValueLookup,
+        graph_inputs: List[Input],
+    ) -> Optional[Operation]:
         # Perform initial solving
         solver = TypeSolver(spec, {0: fst_in.type_}, self._rng)
         try:
@@ -193,7 +213,9 @@ class GraphGenerator:
             # Sample values in lookup table with matching shape and data type
             shape_node = cast(ArrayNode, shapes_node.children_[t_idx])
             dtype_node = cast(ScalarNode, dtypes_node.children_[t_idx])
-            value = self._sample_match_value(value_lu, shape_node, dtype_node, matched_cnt)
+            value = self._sample_match_value(
+                value_lu, shape_node, dtype_node, matched_cnt
+            )
             if value is None:
                 continue
             matched[t_idx] = value
@@ -210,8 +232,14 @@ class GraphGenerator:
         # Create operation
         return self._create_opr(op, info, matched, value_lu, graph_inputs)
 
-    def _gen_variadic_opr(self, op: Op, spec: TypeSpec, fst_in: Value, value_lu: ValueLookup,
-                          graph_inputs: List[Input]) -> Optional[Operation]:
+    def _gen_variadic_opr(
+        self,
+        op: Op,
+        spec: TypeSpec,
+        fst_in: Value,
+        value_lu: ValueLookup,
+        graph_inputs: List[Input],
+    ) -> Optional[Operation]:
         # Create solver and manually set input number
         solver = TypeSolver(spec, {0: fst_in.type_}, self._rng)
         store = solver.store_
@@ -237,7 +265,9 @@ class GraphGenerator:
 
             for _ in range(opr_trials):
                 # Sample matched value
-                value = self._sample_match_value(value_lu, shape_node, dtype_node, matched_cnt)
+                value = self._sample_match_value(
+                    value_lu, shape_node, dtype_node, matched_cnt
+                )
                 if value is None:
                     break
 
@@ -276,8 +306,13 @@ class GraphGenerator:
         return solver.solve()
 
     @staticmethod
-    def _create_opr(op: Op, info: OpTypeInfo, matched: Dict[int, Value],
-                    value_lu: ValueLookup, graph_inputs: List[Input]):
+    def _create_opr(
+        op: Op,
+        info: OpTypeInfo,
+        matched: Dict[int, Value],
+        value_lu: ValueLookup,
+        graph_inputs: List[Input],
+    ):
         # Create operation
         inputs = []
         for idx in range(len(info.in_types_)):
@@ -298,15 +333,24 @@ class GraphGenerator:
 
         return opr
 
-    def _sample_match_value(self, value_lu: ValueLookup, shape: ArrayNode, dtype: ScalarNode,
-                            add_cnt: Dict[Value, int]) -> Optional[Value]:
+    def _sample_match_value(
+        self,
+        value_lu: ValueLookup,
+        shape: ArrayNode,
+        dtype: ScalarNode,
+        add_cnt: Dict[Value, int],
+    ) -> Optional[Value]:
         # Compute choices of ranks and data types
         rank_choices = int_expr_choices(shape.len_.expr, 2, max_rank + 1)
         dtype_choices = expr_choices(dtype.expr, common_dtypes)
 
         # Query value lookup table
-        matches = list(filter(lambda v: self._match_shape(shape, v),
-                              value_lu.by_choices(rank_choices, dtype_choices)))
+        matches = list(
+            filter(
+                lambda v: self._match_shape(shape, v),
+                value_lu.by_choices(rank_choices, dtype_choices),
+            )
+        )
         return None if len(matches) == 0 else self._sample_value(matches, add_cnt)
 
     @staticmethod

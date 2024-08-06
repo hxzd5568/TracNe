@@ -63,4 +63,3 @@ def @main(%nzx : Tensor[(3, 4, 4), float16] /* ty=Tensor[(3, 4, 4), float16] spa
   %16 = %15(%14) /* ty=Tensor[(3, 1, 1), float16] */;
   (%16,) /* ty=(Tensor[(3, 1, 1), float16],) span=from_string:3:3 */
 }
-

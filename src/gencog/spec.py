@@ -11,14 +11,14 @@ from .expr.infer import ExprTypeError, infer_type
 from .expr.ty import Type, ListType, TyVar, common_dtypes
 from .util import CodeBuffer, cls_name, unwrap_or
 
-max_in_num = params['spec.max_in_num']
+max_in_num = params["spec.max_in_num"]
 in_num_ran = iran(1, max_in_num)
-max_out_num = params['spec.max_out_num']
+max_out_num = params["spec.max_out_num"]
 out_num_ran = iran(1, max_out_num)
-max_rank = params['spec.max_rank']
+max_rank = params["spec.max_rank"]
 rank_ran = iran(1, max_rank)
 dl_rank_ran = iran(2, max_rank)
-max_dim = params['spec.max_dim']
+max_dim = params["spec.max_dim"]
 dim_ran = iran(1, max_dim)
 
 
@@ -42,17 +42,19 @@ class TypeSpec:
     # restricted.
     for_graph = True
 
-    def __init__(self,
-                 attrs: t.List[Attr],
-                 in_num: ExprLike,
-                 in_ranks: ExprLike,
-                 in_dtypes: ExprLike,
-                 in_shapes: ExprLike,
-                 extra: t.List[ExprLike],
-                 out_num: ExprLike,
-                 out_ranks: ExprLike,
-                 out_dtypes: ExprLike,
-                 out_shapes: ExprLike):
+    def __init__(
+        self,
+        attrs: t.List[Attr],
+        in_num: ExprLike,
+        in_ranks: ExprLike,
+        in_dtypes: ExprLike,
+        in_shapes: ExprLike,
+        extra: t.List[ExprLike],
+        out_num: ExprLike,
+        out_ranks: ExprLike,
+        out_dtypes: ExprLike,
+        out_shapes: ExprLike,
+    ):
         self.attrs = attrs
         self.in_num = in_num
         self.in_ranks = in_ranks
@@ -84,11 +86,11 @@ class TypeSpec:
             if a.name_ == new.name_:
                 a.expr_ = new.expr_
                 return
-        raise ValueError(f'Attribute \'{new.name_}\' not found.')
+        raise ValueError(f"Attribute '{new.name_}' not found.")
 
     def add_attr(self, new: Attr):
         if self.has_attr(new.name_):
-            raise ValueError(f'Attribute \'{new.name_}\' already defined.')
+            raise ValueError(f"Attribute '{new.name_}' already defined.")
         self._attrs.append(new)
 
     @property
@@ -256,27 +258,31 @@ class TypeSpec:
         # Attribute types
         attr_ty: Dict[str, Type] = {}
         for attr in self.attrs:
-            ty = self._infer_type(attr.expr_, attr_ty, f'attr[\'{attr.name_}\']')
+            ty = self._infer_type(attr.expr_, attr_ty, f"attr['{attr.name_}']")
             attr_ty[attr.name_] = ty
 
         # Inputs
-        self._infer_type(self.in_num, attr_ty, 'in_num', INT)
-        self._infer_type(self.in_ranks, attr_ty, 'in_ranks', ListType(INT))
-        self._infer_type(self.in_dtypes, attr_ty, 'in_dtypes', ListType(DTYPE))
-        self._infer_type(self.in_shapes, attr_ty, 'in_shapes', ListType(ListType(INT)))
+        self._infer_type(self.in_num, attr_ty, "in_num", INT)
+        self._infer_type(self.in_ranks, attr_ty, "in_ranks", ListType(INT))
+        self._infer_type(self.in_dtypes, attr_ty, "in_dtypes", ListType(DTYPE))
+        self._infer_type(self.in_shapes, attr_ty, "in_shapes", ListType(ListType(INT)))
 
         # Extra constraints
         for i, cmp in enumerate(self.extra):
-            self._infer_type(cmp, attr_ty, f'extra[{i}]', BOOL)
+            self._infer_type(cmp, attr_ty, f"extra[{i}]", BOOL)
 
         # Outputs
-        self._infer_type(self.out_num, attr_ty, 'out_num', INT)
-        self._infer_type(self.out_ranks, attr_ty, 'out_ranks', ListType(INT))
-        self._infer_type(self.out_dtypes, attr_ty, 'out_dtypes', ListType(DTYPE))
-        self._infer_type(self.out_shapes, attr_ty, 'out_shapes', ListType(ListType(INT)))
+        self._infer_type(self.out_num, attr_ty, "out_num", INT)
+        self._infer_type(self.out_ranks, attr_ty, "out_ranks", ListType(INT))
+        self._infer_type(self.out_dtypes, attr_ty, "out_dtypes", ListType(DTYPE))
+        self._infer_type(
+            self.out_shapes, attr_ty, "out_shapes", ListType(ListType(INT))
+        )
 
     @staticmethod
-    def _infer_type(expr: Expr, attr_ty: Dict[str, Type], name: str, hint: Type = TyVar()):
+    def _infer_type(
+        expr: Expr, attr_ty: Dict[str, Type], name: str, hint: Type = TyVar()
+    ):
         try:
             ty = infer_type(expr, attr_ty, hint=hint)
         except ExprTypeError as err:
@@ -292,29 +298,37 @@ class TypeSpec:
         def print_fn(e: Expr):
             return lambda: print_expr(e, buf, [])
 
-        buf.write_named_multi([
-            ('attr', lambda: buf.write_named_multi(
-                [(a.name_, print_fn(a.expr_)) for a in self.attrs],
-                prefix='[', suffix=']'
-            )),
-            ('in_num', print_fn(self.in_num)),
-            ('in_ranks', print_fn(self.in_ranks)),
-            ('in_dtypes', print_fn(self.in_dtypes)),
-            ('in_shapes', print_fn(self.in_shapes)),
-            ('extra', lambda: buf.write_pos_multi(
-                [print_fn(cmp) for cmp in self.extra],
-                prefix='[', suffix=']'
-            )),
-            ('out_num', print_fn(self.out_num)),
-            ('out_ranks', print_fn(self.out_ranks)),
-            ('out_dtypes', print_fn(self.out_dtypes)),
-            ('out_shapes', print_fn(self.out_shapes)),
-        ])
+        buf.write_named_multi(
+            [
+                (
+                    "attr",
+                    lambda: buf.write_named_multi(
+                        [(a.name_, print_fn(a.expr_)) for a in self.attrs],
+                        prefix="[",
+                        suffix="]",
+                    ),
+                ),
+                ("in_num", print_fn(self.in_num)),
+                ("in_ranks", print_fn(self.in_ranks)),
+                ("in_dtypes", print_fn(self.in_dtypes)),
+                ("in_shapes", print_fn(self.in_shapes)),
+                (
+                    "extra",
+                    lambda: buf.write_pos_multi(
+                        [print_fn(cmp) for cmp in self.extra], prefix="[", suffix="]"
+                    ),
+                ),
+                ("out_num", print_fn(self.out_num)),
+                ("out_ranks", print_fn(self.out_ranks)),
+                ("out_dtypes", print_fn(self.out_dtypes)),
+                ("out_shapes", print_fn(self.out_shapes)),
+            ]
+        )
 
         return str(buf)
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def expr_choices(e: Expr, default: Iterable[T]) -> t.List[T]:
@@ -368,8 +382,7 @@ class SpecCheckError(Exception):
         self.code_ = code
 
     def __str__(self):
-        return f'Specification error in {self.name_}: {self.msg_}\n' \
-               f'{self.code_}'
+        return f"Specification error in {self.name_}: {self.msg_}\n" f"{self.code_}"
 
 
 class Op:
@@ -377,9 +390,14 @@ class Op:
     Operator.
     """
 
-    def __init__(self, name: str, spec_f: Callable[[], TypeSpec],
-                 params: Optional[t.List[int]] = None, ignored_outs: Optional[t.List[int]] = None,
-                 register: bool = True):
+    def __init__(
+        self,
+        name: str,
+        spec_f: Callable[[], TypeSpec],
+        params: Optional[t.List[int]] = None,
+        ignored_outs: Optional[t.List[int]] = None,
+        register: bool = True,
+    ):
         self.name_ = name
         self.spec_f_ = spec_f
         self.params_ = unwrap_or(params, [])
@@ -394,9 +412,9 @@ class Op:
             spec.check()
         except SpecCheckError as err:
             raise RuntimeError(
-                f'Specification check failed of operator \'{self.name_}\': '
-                f'{err.msg_}\n'
-                f'{err.name_}={err.code_}'
+                f"Specification check failed of operator '{self.name_}': "
+                f"{err.msg_}\n"
+                f"{err.name_}={err.code_}"
             )
         return spec
 
@@ -415,7 +433,7 @@ class OpRegistry:
     @classmethod
     def register(cls, op: Op):
         if op.name_ in cls._table:
-            warn(f'Operator {op.name_} has already been registered.')
+            warn(f"Operator {op.name_} has already been registered.")
         else:
             cls._ops.append(op)
             cls._table[op.name_] = op
@@ -423,7 +441,7 @@ class OpRegistry:
     @classmethod
     def get(cls, name: str):
         if name not in cls._table:
-            raise ValueError(f'Operator {name} not found.')
+            raise ValueError(f"Operator {name} not found.")
         return cls._table[name]
 
     @classmethod

@@ -5,7 +5,15 @@ from numpy.random import Generator
 
 from .eval import PartialEval, EvalExpr, EvalError
 from .smt import solve_smt
-from .store import ValueStore, StoreNode, NodeKind, ValueStatus, ScalarNode, ArrayNode, StoreError
+from .store import (
+    ValueStore,
+    StoreNode,
+    NodeKind,
+    ValueStatus,
+    ScalarNode,
+    ArrayNode,
+    StoreError,
+)
 from .valid import validate
 from ..expr.array import Tuple
 from ..expr.basic import ExprKind, Const, And, Var, Cmp, CmpOp
@@ -25,17 +33,21 @@ class TensorType:
     def rank(self):
         return len(self.shape_)
 
-    def __eq__(self, other: 'TensorType'):
+    def __eq__(self, other: "TensorType"):
         return self.shape_ == other.shape_ and self.dtype_ == other.dtype_
 
     def __repr__(self):
         # Compatible with Relay tensor type
-        return f'Tensor[{tuple(self.shape_)}, {self.dtype_}]'
+        return f"Tensor[{tuple(self.shape_)}, {self.dtype_}]"
 
 
 class OpTypeInfo:
-    def __init__(self, attrs: List[t.Tuple[str, ValueType]], in_types: List[TensorType],
-                 out_types: List[TensorType]):
+    def __init__(
+        self,
+        attrs: List[t.Tuple[str, ValueType]],
+        in_types: List[TensorType],
+        out_types: List[TensorType],
+    ):
         self.attrs_ = attrs
         self.in_types_ = in_types
         self.out_types_ = out_types
@@ -43,20 +55,36 @@ class OpTypeInfo:
     def __repr__(self):
         buf = CodeBuffer()
         buf.write(cls_name(self))
-        buf.write_named_multi([
-            ('attrs', lambda: buf.write_named_multi(
-                map(lambda p: (p[0], lambda: buf.write(str(p[1]))), self.attrs_),
-                prefix='[', suffix=']'
-            )),
-            ('in_types', lambda: buf.write_pos_multi(
-                map(lambda tt: lambda: buf.write(str(tt)), self.in_types_),
-                prefix='[', suffix=']'
-            )),
-            ('out_types', lambda: buf.write_pos_multi(
-                map(lambda tt: lambda: buf.write(str(tt)), self.out_types_),
-                prefix='[', suffix=']'
-            ))
-        ])
+        buf.write_named_multi(
+            [
+                (
+                    "attrs",
+                    lambda: buf.write_named_multi(
+                        map(
+                            lambda p: (p[0], lambda: buf.write(str(p[1]))), self.attrs_
+                        ),
+                        prefix="[",
+                        suffix="]",
+                    ),
+                ),
+                (
+                    "in_types",
+                    lambda: buf.write_pos_multi(
+                        map(lambda tt: lambda: buf.write(str(tt)), self.in_types_),
+                        prefix="[",
+                        suffix="]",
+                    ),
+                ),
+                (
+                    "out_types",
+                    lambda: buf.write_pos_multi(
+                        map(lambda tt: lambda: buf.write(str(tt)), self.out_types_),
+                        prefix="[",
+                        suffix="]",
+                    ),
+                ),
+            ]
+        )
         return str(buf)
 
 
@@ -65,13 +93,12 @@ class SolveError(Exception):
     The solver cannot solve type constraints.
     """
 
-    def __init__(self, solver: 'TypeSolver', msg: str):
+    def __init__(self, solver: "TypeSolver", msg: str):
         self.solver_ = solver
         self.msg_ = msg
 
     def __str__(self):
-        return f'{self.msg_}\n' \
-               f'{str(self.solver_)}'
+        return f"{self.msg_}\n" f"{str(self.solver_)}"
 
 
 class TypeSolver:
@@ -167,8 +194,8 @@ class TypeSolver:
             if root.len_.value != len(ranks.fields_):
                 raise SolveError(
                     self,
-                    f'Length of input rank array {len(ranks.fields_)} is not consistent with '
-                    f'input number {root.len_.value}. '
+                    f"Length of input rank array {len(ranks.fields_)} is not consistent with "
+                    f"input number {root.len_.value}. ",
                 )
 
             # Define ranks for each input tensor
@@ -184,8 +211,8 @@ class TypeSolver:
             if root.len_.value != len(shapes.fields_):
                 raise SolveError(
                     self,
-                    f'Length of input shape array {len(shapes.fields_)} is not consistent with '
-                    f'input number {root.len_.value}. '
+                    f"Length of input shape array {len(shapes.fields_)} is not consistent with "
+                    f"input number {root.len_.value}. ",
                 )
 
             # Define shapes for each input tensor
@@ -215,8 +242,8 @@ class TypeSolver:
                 if tensor.len_.value != len(shape.fields_):
                     raise SolveError(
                         self,
-                        f'Length of input shape {len(shape.fields_)} for tensor {t_idx} is not '
-                        f'consistent with rank {tensor.len_.value}. '
+                        f"Length of input shape {len(shape.fields_)} for tensor {t_idx} is not "
+                        f"consistent with rank {tensor.len_.value}. ",
                     )
                 tensor.set_elem_defined(shape)
                 changed = True
@@ -252,8 +279,8 @@ class TypeSolver:
             if root.len_.value != len(dtypes.fields_):
                 raise SolveError(
                     self,
-                    f'Length of input rank array {len(dtypes.fields_)} is not consistent with '
-                    f'input number {root.len_.value}. '
+                    f"Length of input rank array {len(dtypes.fields_)} is not consistent with "
+                    f"input number {root.len_.value}. ",
                 )
 
             # Define data type for each tensor
@@ -280,9 +307,7 @@ class TypeSolver:
             if post.kind == ExprKind.CONST:
                 const = cast(Const, post)
                 if const.val_ is False:
-                    raise SolveError(
-                        self, 'Extra constraint is not satisfiable.'
-                    )
+                    raise SolveError(self, "Extra constraint is not satisfiable.")
                 changed = True
                 continue
             elif post.kind == ExprKind.AND:
@@ -292,8 +317,11 @@ class TypeSolver:
                 continue
             elif post.kind == ExprKind.CMP:
                 cmp = cast(Cmp, post)
-                if cmp.op_ == CmpOp.EQ and cmp.lhs_.kind == ExprKind.VAR and \
-                        cmp.rhs_.kind == ExprKind.CONST:
+                if (
+                    cmp.op_ == CmpOp.EQ
+                    and cmp.lhs_.kind == ExprKind.VAR
+                    and cmp.rhs_.kind == ExprKind.CONST
+                ):
                     lhs = cast(Var, cmp.lhs_)
                     rhs = cast(Const, cmp.rhs_)
                     self.store_.set_var_solved(lhs, rhs.val_)
@@ -332,9 +360,7 @@ class TypeSolver:
             elif self._try_sample(var):
                 changed = True
             else:
-                raise SolveError(
-                    self, 'Cannot solve unconstrained variable.'
-                )
+                raise SolveError(self, "Cannot solve unconstrained variable.")
 
         # Solve by SMT
         changed |= solve_smt(all_vars, extra, self.store_, self._rng)
@@ -388,24 +414,20 @@ class TypeSolver:
         attrs = []
         for name, node in self.store_.attrs_:
             if not node.solved:
-                raise SolveError(
-                    self, f'Attribute \'{name}\' not solved.'
-                )
+                raise SolveError(self, f"Attribute '{name}' not solved.")
             attrs.append((name, cast(ValueType, node.value)))
 
         # Extract input types
         if not self.store_.in_shapes_.solved:
-            raise SolveError(
-                self, 'Input shapes not solved.'
-            )
+            raise SolveError(self, "Input shapes not solved.")
         in_shapes = cast(List[List[int]], self.store_.in_shapes_.value)
         if not self.store_.in_dtypes_.solved:
-            raise SolveError(
-                self, 'Input data types not solved.'
-            )
+            raise SolveError(self, "Input data types not solved.")
         in_dtypes = cast(List[DataType], self.store_.in_dtypes_.value)
         assert len(in_shapes) == len(in_dtypes)
-        in_types = [TensorType(shape, dtype) for shape, dtype in zip(in_shapes, in_dtypes)]
+        in_types = [
+            TensorType(shape, dtype) for shape, dtype in zip(in_shapes, in_dtypes)
+        ]
 
         return attrs, in_types
 
@@ -425,7 +447,7 @@ class TypeSolver:
         if len(ranks) != num:
             raise SolveError(
                 self,
-                f'Length of rank array {len(ranks)} is not consistent with input number {num}.'
+                f"Length of rank array {len(ranks)} is not consistent with input number {num}.",
             )
         for shape_node, rank in zip(shapes_node.children_, ranks):
             cast(ArrayNode, shape_node).set_len_solved(rank)
@@ -436,14 +458,14 @@ class TypeSolver:
         if len(shapes) != num:
             raise SolveError(
                 self,
-                f'Length of shape array {len(shapes)} is not consistent with input number {num}.'
+                f"Length of shape array {len(shapes)} is not consistent with input number {num}.",
             )
         for t_idx, shape in enumerate(shapes):
             if len(shape) != ranks[t_idx]:
                 raise SolveError(
                     self,
-                    f'Shape length {len(shape)} of tensor {t_idx} is not consistent with rank '
-                    f'{ranks[t_idx]}.'
+                    f"Shape length {len(shape)} of tensor {t_idx} is not consistent with rank "
+                    f"{ranks[t_idx]}.",
                 )
             shape_node = cast(ArrayNode, shapes_node.children_[t_idx])
             for d_idx, dim in enumerate(shape):
@@ -455,8 +477,8 @@ class TypeSolver:
         if len(dtypes) != num:
             raise SolveError(
                 self,
-                f'Length of data type array {len(dtypes)} is not consistent with input number '
-                f'{num}.'
+                f"Length of data type array {len(dtypes)} is not consistent with input number "
+                f"{num}.",
             )
         for dtype_node, dtype in zip(dtypes_node.children_, dtypes):
             cast(ScalarNode, dtype_node).set_solved(dtype)
@@ -530,15 +552,16 @@ class TypeSolver:
 
     def __repr__(self):
         buf = CodeBuffer()
-        buf.writeln('==== SOLVER DUMP BEGIN ====')
-        buf.writeln('---- Value Store ----')
+        buf.writeln("==== SOLVER DUMP BEGIN ====")
+        buf.writeln("---- Value Store ----")
         self.store_.print(buf)
         buf.writeln()
-        buf.writeln('---- Extra Constraints ----')
+        buf.writeln("---- Extra Constraints ----")
         buf.write_pos_multi(
             map(lambda e: lambda: print_expr(e, buf, []), self._extra),
-            prefix='[', suffix=']'
+            prefix="[",
+            suffix="]",
         )
         buf.writeln()
-        buf.writeln('==== SOLVER DUMP END ====')
+        buf.writeln("==== SOLVER DUMP END ====")
         return str(buf)

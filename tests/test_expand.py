@@ -1,10 +1,12 @@
 import sys
 import psutil
-sys.path.append('..')
+
+sys.path.append("..")
 from src.diagnose import diagnose_mod
 from src.expand_graph import expand
 from src.generate_newseed import ge_seed
 from src.rate import ge_rate
+
 ge_rate()
 # expand()
 # import trace

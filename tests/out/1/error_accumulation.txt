@@ -14,4 +14,3 @@
 1
 -chain-   0 th
 1  tvmgen_default_fused_rsqrt_multiply,4.1468907880925004e-08
-

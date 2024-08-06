@@ -20,104 +20,104 @@ def @main(%pzx: Tensor[(2, 4, 40, 10, 10), float32] /* ty=Tensor[(2, 4, 40, 10, 
 
 #[metadata]
 {
-  "root": 1, 
+  "root": 1,
   "nodes": [
     {
       "type_key": ""
-    }, 
+    },
     {
-      "type_key": "Map", 
+      "type_key": "Map",
       "keys": [
         "relay.Constant"
-      ], 
+      ],
       "data": [2]
-    }, 
+    },
     {
-      "type_key": "Array", 
+      "type_key": "Array",
       "data": [3]
-    }, 
+    },
     {
-      "type_key": "relay.Constant", 
+      "type_key": "relay.Constant",
       "attrs": {
-        "_checked_type_": "8", 
-        "data": "0", 
-        "span": "6", 
+        "_checked_type_": "8",
+        "data": "0",
+        "span": "6",
         "virtual_device_": "4"
       }
-    }, 
+    },
     {
-      "type_key": "VirtualDevice", 
+      "type_key": "VirtualDevice",
       "attrs": {
-        "device_type_int": "-1", 
-        "memory_scope": "5", 
-        "target": "0", 
+        "device_type_int": "-1",
+        "memory_scope": "5",
+        "target": "0",
         "virtual_device_id": "-1"
       }
-    }, 
+    },
     {
       "type_key": "runtime.String"
-    }, 
+    },
     {
-      "type_key": "Span", 
+      "type_key": "Span",
       "attrs": {
-        "column": "27", 
-        "end_column": "45", 
-        "end_line": "3", 
-        "line": "3", 
+        "column": "27",
+        "end_column": "45",
+        "end_line": "3",
+        "line": "3",
         "source_name": "7"
       }
-    }, 
+    },
     {
-      "type_key": "SourceName", 
+      "type_key": "SourceName",
       "repr_str": "from_string"
-    }, 
+    },
     {
-      "type_key": "relay.TensorType", 
+      "type_key": "relay.TensorType",
       "attrs": {
-        "dtype": "float32", 
-        "shape": "9", 
+        "dtype": "float32",
+        "shape": "9",
         "span": "0"
       }
-    }, 
+    },
     {
-      "type_key": "Array", 
+      "type_key": "Array",
       "data": [10, 11, 12, 13]
-    }, 
+    },
     {
-      "type_key": "IntImm", 
+      "type_key": "IntImm",
       "attrs": {
-        "dtype": "int32", 
-        "span": "0", 
+        "dtype": "int32",
+        "span": "0",
         "value": "4"
       }
-    }, 
+    },
     {
-      "type_key": "IntImm", 
+      "type_key": "IntImm",
       "attrs": {
-        "dtype": "int32", 
-        "span": "0", 
+        "dtype": "int32",
+        "span": "0",
         "value": "1"
       }
-    }, 
+    },
     {
-      "type_key": "IntImm", 
+      "type_key": "IntImm",
       "attrs": {
-        "dtype": "int32", 
-        "span": "0", 
+        "dtype": "int32",
+        "span": "0",
         "value": "1"
       }
-    }, 
+    },
     {
-      "type_key": "IntImm", 
+      "type_key": "IntImm",
       "attrs": {
-        "dtype": "int32", 
-        "span": "0", 
+        "dtype": "int32",
+        "span": "0",
         "value": "1"
       }
     }
-  ], 
+  ],
   "b64ndarrays": [
     "P6G0lvBAXt0AAAAAAAAAAAEAAAAAAAAABAAAAAIgAQAEAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAABAAAAAAAAAA4x4hP1gtbj+wVCc/TYsMPw=="
-  ], 
+  ],
   "attrs": {"tvm_version": "0.12.dev0"}
 }

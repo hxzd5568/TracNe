@@ -1,22 +1,31 @@
 import numpy as np
 
 
-def MSE(y_true, y_pred,):
+def MSE(
+    y_true,
+    y_pred,
+):
     if np.isinf(y_true).any() == 1 or np.isinf(y_pred).any() == 1:
-        print('y_true, y_pred have inf')
+        print("y_true, y_pred have inf")
         print(y_true, y_pred)
         return 0
     elif np.isnan(y_true).any() == 1 or np.isnan(y_pred).any() == 1:
-        print('y_true, y_pred have nan')
+        print("y_true, y_pred have nan")
         print(y_true, y_pred)
         return 0
     else:
-        relative_error = np.average(np.abs(y_true - y_pred).astype(np.float128)
-                                    / (np.abs(y_true).astype(np.float128) + 1e-38))
-    relative_error = np.average(np.abs(y_true - y_pred).astype(np.float128)
-                                / (np.abs(y_true).astype(np.float128) + 1e-38))
+        relative_error = np.average(
+            np.abs(y_true - y_pred).astype(np.float128)
+            / (np.abs(y_true).astype(np.float128) + 1e-38)
+        )
+    relative_error = np.average(
+        np.abs(y_true - y_pred).astype(np.float128)
+        / (np.abs(y_true).astype(np.float128) + 1e-38)
+    )
     return relative_error
-#______________case 1 ____________
+
+
+# ______________case 1 ____________
 # p01 = np.array([[ 0.877  , -0.6206 ,  0.649  ],
 #        [ 0.688  ,  2.254  , -0.2369 ],
 #        [ 1.602  , -0.5967 ,  1.07   ],

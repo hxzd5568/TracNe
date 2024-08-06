@@ -255,7 +255,7 @@ def @main(%x: Tensor[(32), float32]) {
 }
 """
 
-seed6="""
+seed6 = """
 #[version = "0.0.5"]
 def @main(%x: Tensor[(2, 4, 10, 10, 10), float32], %weight, %out_bias: Tensor[(8), float32]) {
   %0 = nn.conv3d(%x, %weight, padding=[1, 1, 1, 1, 1, 1], channels=8, kernel_size=[3, 3, 3]);

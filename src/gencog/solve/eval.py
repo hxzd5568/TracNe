@@ -7,11 +7,51 @@ from numpy.random import Generator
 from tvm import tir
 
 from .store import ValueStore, ArrayNode
-from ..expr.array import Tuple, List, GetItem, Len, Concat, Slice, Map, ReduceArray, ReduceRange, \
-    Filter, InSet, Subset, Perm
-from ..expr.basic import Env, Expr, ExprKind, Const, Var, Symbol, Range, Arith, Cmp, CmpOp, Not, \
-    And, Or, ForAll, Cond, GetAttr, Dummy, to_expr
-from ..expr.tensor import Num, Shape, Rank, GetDType, TensorKind, TensorDesc, LayoutMap, LayoutIndex
+from ..expr.array import (
+    Tuple,
+    List,
+    GetItem,
+    Len,
+    Concat,
+    Slice,
+    Map,
+    ReduceArray,
+    ReduceRange,
+    Filter,
+    InSet,
+    Subset,
+    Perm,
+)
+from ..expr.basic import (
+    Env,
+    Expr,
+    ExprKind,
+    Const,
+    Var,
+    Symbol,
+    Range,
+    Arith,
+    Cmp,
+    CmpOp,
+    Not,
+    And,
+    Or,
+    ForAll,
+    Cond,
+    GetAttr,
+    Dummy,
+    to_expr,
+)
+from ..expr.tensor import (
+    Num,
+    Shape,
+    Rank,
+    GetDType,
+    TensorKind,
+    TensorDesc,
+    LayoutMap,
+    LayoutIndex,
+)
 from ..expr.ty import ValueType
 from ..expr.visitor import ExprVisitor
 from ..util import map_opt
@@ -49,7 +89,7 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
         v = super().visit(e, env)
         if v is None:
             # Only query from value store will produce None.
-            raise EvalError(e, 'Cannot query from value store.')
+            raise EvalError(e, "Cannot query from value store.")
         return v
 
     def visit_const(self, const: Const, env: Env[ValueType]) -> ResultType:
@@ -58,17 +98,19 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
     def visit_var(self, var: Var, env: Env[ValueType]) -> ResultType:
         v = self._store.query_var(var)
         if v is None:
-            raise EvalError(var, 'Variable not solved before.')
+            raise EvalError(var, "Variable not solved before.")
         return v
 
     def visit_symbol(self, sym: Symbol, env: Env[ValueType]) -> ResultType:
         if sym not in env:
-            raise EvalError(sym, 'Symbol is not found in environment.')
+            raise EvalError(sym, "Symbol is not found in environment.")
         return env[sym]
 
     def visit_range(self, ran: Range, env: Env[ValueType]) -> RangeType:
-        return (map_opt(lambda e: self.visit(e, env), ran.begin_),
-                map_opt(lambda e: self.visit(e, env), ran.end_))
+        return (
+            map_opt(lambda e: self.visit(e, env), ran.begin_),
+            map_opt(lambda e: self.visit(e, env), ran.end_),
+        )
 
     def visit_arith(self, arith: Arith, env: Env[ValueType]) -> ResultType:
         lv = self.visit(arith.lhs_, env)
@@ -91,7 +133,10 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
 
     def visit_forall(self, forall: ForAll, env: Env[ValueType]) -> ResultType:
         begin, end = self.visit_range(forall.ran_, env)
-        return (self.visit(forall.body_, env + (forall.idx_, idx)) for idx in range(begin, end))
+        return (
+            self.visit(forall.body_, env + (forall.idx_, idx))
+            for idx in range(begin, end)
+        )
 
     def visit_cond(self, cond: Cond, env: Env[ValueType]) -> ResultType:
         pred = self.visit(cond.pred_, env)
@@ -102,7 +147,7 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
         return self._check_not_none(self._store.query_attr(attr.name_).value, attr)
 
     def visit_dummy(self, dum: Dummy, env: Env[ValueType]) -> ResultType:
-        raise EvalError(dum, 'Dummy expression cannot be evaluated.')
+        raise EvalError(dum, "Dummy expression cannot be evaluated.")
 
     def visit_num(self, num: Num, env: Env[ValueType]) -> ResultType:
         node = self._store.query_shape(num.t_kind_)
@@ -121,9 +166,7 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
     def _get_tensor_shape_node(self, kind: TensorKind, idx: int, e: Expr):
         node = self._store.query_shape(kind, idx)
         if node is None:
-            raise EvalError(
-                e, f'Shape of {kind.name} tensor {idx} is undefined.'
-            )
+            raise EvalError(e, f"Shape of {kind.name} tensor {idx} is undefined.")
         return cast(ArrayNode, node)
 
     def visit_dtype(self, dtype: GetDType, env: Env[ValueType]) -> ResultType:
@@ -132,13 +175,13 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
         node = self._store.query_dtype(kind, idx)
         if node is None:
             raise EvalError(
-                dtype, f'Data type of {kind.name} tensor {idx} is undefined.'
+                dtype, f"Data type of {kind.name} tensor {idx} is undefined."
             )
         return self._check_not_none(node.value, dtype)
 
     def _check_not_none(self, v: ValueType, e: Expr):
         if v is None:
-            raise EvalError(e, 'Result contains None.')
+            raise EvalError(e, "Result contains None.")
         if isinstance(v, (tuple, list)):
             return tuple(self._check_not_none(f, e) for f in v)
         return v
@@ -160,14 +203,16 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
         return (self.visit(f, env) for f in tup.fields_)
 
     def visit_list(self, lst: List, env: Env[ValueType]) -> ResultType:
-        return (self.visit(lst.body_, env + (lst.idx_, idx))
-                for idx in range(self.visit(lst.len_, env)))
+        return (
+            self.visit(lst.body_, env + (lst.idx_, idx))
+            for idx in range(self.visit(lst.len_, env))
+        )
 
     def visit_getitem(self, getitem: GetItem, env: Env[ValueType]) -> ResultType:
         arr = tuple(self.visit(getitem.arr_, env))
         idx = self.visit(getitem.idx_, env)
         if idx not in range(-len(arr), len(arr)):
-            raise EvalError(getitem, 'Index out of bound.')
+            raise EvalError(getitem, "Index out of bound.")
         return arr[idx]
 
     def visit_len(self, ln: Len, env: Env[ValueType]) -> ResultType:
@@ -182,13 +227,18 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
         return arr[begin:end]
 
     def visit_map(self, m: Map, env: Env[ValueType]) -> ResultType:
-        return map(lambda v: self.visit(m.body_, env + (m.sym_, v)), self.visit(m.arr_, env))
+        return map(
+            lambda v: self.visit(m.body_, env + (m.sym_, v)), self.visit(m.arr_, env)
+        )
 
     def visit_reduce_array(self, red: ReduceArray, env: Env[ValueType]) -> ResultType:
         func = Arith.op_funcs[red.op_][red.type_]
         try:
-            return reduce(lambda acc, v: func(acc, v), self.visit(red.arr_, env),
-                          self.visit(red.init_, env))
+            return reduce(
+                lambda acc, v: func(acc, v),
+                self.visit(red.arr_, env),
+                self.visit(red.init_, env),
+            )
         except TypeError as err:
             raise EvalError(red, str(err))
 
@@ -196,14 +246,21 @@ class EvalExpr(ExprVisitor[Env[ValueType], ResultType]):
         begin, end = self.visit_range(red.ran_, env)
         func = Arith.op_funcs[red.op_][red.type_]
         try:
-            return reduce(lambda acc, idx: func(acc, self.visit(red.body_, env + (red.idx_, idx))),
-                          range(begin, end), self.visit(red.init_, env))
+            return reduce(
+                lambda acc, idx: func(
+                    acc, self.visit(red.body_, env + (red.idx_, idx))
+                ),
+                range(begin, end),
+                self.visit(red.init_, env),
+            )
         except TypeError as err:
             raise EvalError(red, str(err))
 
     def visit_filter(self, flt: Filter, env: Env[ValueType]) -> ResultType:
-        return filter(lambda v: self.visit(flt.pred_, env + (flt.sym_, v)),
-                      self.visit(flt.arr_, env))
+        return filter(
+            lambda v: self.visit(flt.pred_, env + (flt.sym_, v)),
+            self.visit(flt.arr_, env),
+        )
 
     def visit_inset(self, inset: InSet, env: Env[ValueType]) -> ResultType:
         return self.visit(inset.elem_, env) in tuple(self.visit(inset.set_, env))
@@ -242,12 +299,16 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
 
     def visit_var(self, var: Var, env: Env[Expr]) -> Expr:
         if var.tmpl_:  # create new variable for template
-            return Var(ty=var.type_,
-                       ran=map_opt(lambda ran: self.visit_range(ran, env), var.ran_))
+            return Var(
+                ty=var.type_,
+                ran=map_opt(lambda ran: self.visit_range(ran, env), var.ran_),
+            )
         v = self._store.query_var(var)
         if v is not None:
             return Const(v)
-        if var.ran_ is not None:  # non-template variable must keep its original object id
+        if (
+            var.ran_ is not None
+        ):  # non-template variable must keep its original object id
             var.ran_ = self.visit_range(var.ran_, env)
         if var.choices_ is not None:
             var.choices_ = self.visit(var.choices_, env)
@@ -260,19 +321,26 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
         return Range(
             begin=map_opt(lambda e: self.visit(e, env), ran.begin_),
             end=map_opt(lambda e: self.visit(e, env), ran.end_),
-            ty=ran.type_
+            ty=ran.type_,
         )
 
     def visit_arith(self, arith: Arith, env: Env[Expr]) -> Expr:
         return self._try_fold(
-            arith, env, lambda: Arith(
-                arith.op_, self.visit(arith.lhs_, env), self.visit(arith.rhs_, env),
-                ty=arith.type_)
+            arith,
+            env,
+            lambda: Arith(
+                arith.op_,
+                self.visit(arith.lhs_, env),
+                self.visit(arith.rhs_, env),
+                ty=arith.type_,
+            ),
         )
 
     def visit_cmp(self, cmp: Cmp, env: Env[Expr]) -> Expr:
         return self._try_fold(
-            cmp, env, lambda: Cmp(cmp.op_, self.visit(cmp.lhs_, env), self.visit(cmp.rhs_, env))
+            cmp,
+            env,
+            lambda: Cmp(cmp.op_, self.visit(cmp.lhs_, env), self.visit(cmp.rhs_, env)),
         )
 
     def visit_not(self, n: Not, env: Env[Expr]) -> Expr:
@@ -308,12 +376,19 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
     def visit_forall(self, forall: ForAll, env: Env[Expr]) -> Expr:
         ran = self.visit_range(forall.ran_, env)
         if ran.begin_.kind != ExprKind.CONST or ran.end_.kind != ExprKind.CONST:
-            return ForAll(ran, idx=forall.idx_,
-                          body=self.visit(forall.body_, env + (forall.idx_, forall.idx_)))
+            return ForAll(
+                ran,
+                idx=forall.idx_,
+                body=self.visit(forall.body_, env + (forall.idx_, forall.idx_)),
+            )
         begin = cast(Const, ran.begin_).val_
         end = cast(Const, ran.end_).val_
-        and_expr = And(*(self.visit(forall.body_, env + (forall.idx_, Const(idx)))
-                         for idx in range(begin, end)))
+        and_expr = And(
+            *(
+                self.visit(forall.body_, env + (forall.idx_, Const(idx)))
+                for idx in range(begin, end)
+            )
+        )
         return self.visit(and_expr, env)
 
     def visit_cond(self, cond: Cond, env: Env[Expr]) -> Expr:
@@ -322,8 +397,12 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
             v = cast(Const, pred).val_
             return self.visit(cond.tr_br_, env) if v else self.visit(cond.fls_br_, env)
         else:
-            return Cond(self.visit(cond.pred_, env), self.visit(cond.tr_br_, env),
-                        self.visit(cond.fls_br_, env), ty=cond.type_)
+            return Cond(
+                self.visit(cond.pred_, env),
+                self.visit(cond.tr_br_, env),
+                self.visit(cond.fls_br_, env),
+                ty=cond.type_,
+            )
 
     def visit_attr(self, attr: GetAttr, env: Env[Expr]) -> Expr:
         expr = self._store.query_attr(attr.name_).expr
@@ -417,9 +496,13 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
         num = self._try_eval(lst.len_, env)
         if num is None:
             return lst
-        return Tuple(*(self.visit(lst.body_, env + (lst.idx_, Const(idx)))
-                       for idx in range(num)),
-                     ty=lst.type_)
+        return Tuple(
+            *(
+                self.visit(lst.body_, env + (lst.idx_, Const(idx)))
+                for idx in range(num)
+            ),
+            ty=lst.type_,
+        )
 
     def visit_getitem(self, getitem: GetItem, env: Env[Expr]) -> Expr:
         arr = self.visit(getitem.arr_, env)
@@ -451,7 +534,9 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
         for i, arr in enumerate(concat.arrays_):
             arr = self.visit(arr, env)
             if arr.kind != ExprKind.TUPLE:
-                return Concat(Tuple(*fields, ty=concat.type_), concat.arrays_[i:], ty=concat.type_)
+                return Concat(
+                    Tuple(*fields, ty=concat.type_), concat.arrays_[i:], ty=concat.type_
+                )
             fields.extend(cast(Tuple, arr).fields_)
         return Tuple(*fields, ty=concat.type_)
 
@@ -463,46 +548,65 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
         ran_val = self._try_eval(ran, env)
         if ran_val is None:
             return Slice(arr, ran, ty=slc.type_)
-        return Tuple(*cast(Tuple, arr).fields_[ran_val[0]:ran_val[1]], ty=slc.type_)
+        return Tuple(*cast(Tuple, arr).fields_[ran_val[0] : ran_val[1]], ty=slc.type_)
 
     def visit_map(self, m: Map, env: Env[Expr]) -> Expr:
         arr = self.visit(m.arr_, env)
         if arr.kind != ExprKind.TUPLE:
-            return Map(arr, sym=m.sym_, body=self.visit(m.body_, env + (m.sym_, m.sym_)),
-                       ty=m.type_)
+            return Map(
+                arr,
+                sym=m.sym_,
+                body=self.visit(m.body_, env + (m.sym_, m.sym_)),
+                ty=m.type_,
+            )
         arr = cast(Tuple, arr)
-        return Tuple(*(self.visit(m.body_, env + (m.sym_, e)) for e in arr.fields_), ty=m.type_)
+        return Tuple(
+            *(self.visit(m.body_, env + (m.sym_, e)) for e in arr.fields_), ty=m.type_
+        )
 
     def visit_reduce_array(self, red: ReduceArray, env: Env[Expr]) -> Expr:
         return self._try_fold(
-            red, env, lambda: ReduceArray(
-                self.visit(red.arr_, env), red.op_, self.visit(red.init_, env), ty=red.type_
-            )
+            red,
+            env,
+            lambda: ReduceArray(
+                self.visit(red.arr_, env),
+                red.op_,
+                self.visit(red.init_, env),
+                ty=red.type_,
+            ),
         )
 
     def visit_reduce_index(self, red: ReduceRange, env: Env[Expr]) -> Expr:
         return self._try_fold(
-            red, env, lambda: ReduceRange(
-                self.visit_range(red.ran_, env), red.op_, self.visit(red.init_, env),
-                idx=red.idx_, body=self.visit(red.body_, env + (red.idx_, red.idx_)),
-                ty=red.type_
-            )
+            red,
+            env,
+            lambda: ReduceRange(
+                self.visit_range(red.ran_, env),
+                red.op_,
+                self.visit(red.init_, env),
+                idx=red.idx_,
+                body=self.visit(red.body_, env + (red.idx_, red.idx_)),
+                ty=red.type_,
+            ),
         )
 
     def visit_filter(self, flt: Filter, env: Env[Expr]) -> Expr:
         return self._try_fold(
-            flt, env, lambda: Filter(
-                self.visit(flt.arr_, env), sym=flt.sym_,
-                pred=self.visit(flt.pred_, env + (flt.sym_, flt.sym_))
-            )
+            flt,
+            env,
+            lambda: Filter(
+                self.visit(flt.arr_, env),
+                sym=flt.sym_,
+                pred=self.visit(flt.pred_, env + (flt.sym_, flt.sym_)),
+            ),
         )
 
     def visit_inset(self, inset: InSet, env: Env[Expr]) -> Expr:
         # Try folding expression
         inset = self._try_fold(
-            inset, env, lambda: InSet(
-                self.visit(inset.elem_, env), self.visit(inset.set_, env)
-            )
+            inset,
+            env,
+            lambda: InSet(self.visit(inset.elem_, env), self.visit(inset.set_, env)),
         )
         if inset.kind == ExprKind.CONST:
             return inset
@@ -520,9 +624,9 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
     def visit_subset(self, subset: Subset, env: Env[Expr]) -> Expr:
         # Try folding expression
         subset = self._try_fold(
-            subset, env, lambda: Subset(
-                self.visit(subset.sub_, env), self.visit(subset.sup_, env)
-            )
+            subset,
+            env,
+            lambda: Subset(self.visit(subset.sub_, env), self.visit(subset.sup_, env)),
         )
         if subset.kind == ExprKind.CONST:
             return subset
@@ -538,14 +642,18 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
         sub_sp = [e for e in sup.fields_ if self._rng.choice(2)]
         return And(
             Cmp(CmpOp.EQ, Len(sub), len(sub_sp)),
-            *(Cmp(CmpOp.EQ, GetItem(sub, i, ty=sub.type_.elem_type), e)
-              for i, e in enumerate(sub_sp))
+            *(
+                Cmp(CmpOp.EQ, GetItem(sub, i, ty=sub.type_.elem_type), e)
+                for i, e in enumerate(sub_sp)
+            ),
         )
 
     def visit_perm(self, perm: Perm, env: Env[Expr]) -> Expr:
         # Try folding expression
         perm = self._try_fold(
-            perm, env, lambda: Perm(self.visit(perm.tgt_, env), self.visit(perm.src_, env))
+            perm,
+            env,
+            lambda: Perm(self.visit(perm.tgt_, env), self.visit(perm.src_, env)),
         )
         if perm.kind == ExprKind.CONST:
             return perm
@@ -561,8 +669,14 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
         tgt = perm.tgt_
         return And(
             Cmp(CmpOp.EQ, Len(perm.tgt_), len(src.fields_)),
-            *(Cmp(CmpOp.EQ, GetItem(perm.tgt_, i, ty=tgt.type_.elem_type), src.fields_[pi])
-              for i, pi in enumerate(perm_ind))
+            *(
+                Cmp(
+                    CmpOp.EQ,
+                    GetItem(perm.tgt_, i, ty=tgt.type_.elem_type),
+                    src.fields_[pi],
+                )
+                for i, pi in enumerate(perm_ind)
+            ),
         )
 
     def _try_eval(self, expr: Expr, env: Env[Expr]) -> Optional[ValueType]:
@@ -571,7 +685,9 @@ class PartialEval(ExprVisitor[Env[Expr], Expr]):
         except EvalError:
             return None
 
-    def _try_fold(self, expr: Expr, env: Env[Expr], default: Callable[[], Expr]) -> Expr:
+    def _try_fold(
+        self, expr: Expr, env: Env[Expr], default: Callable[[], Expr]
+    ) -> Expr:
         try:
             v = self._eval.visit(expr, self._cvt_env(env))
             if not expr.type_.is_scalar:

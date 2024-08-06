@@ -13,22 +13,22 @@ def create_identity():
         out_num=1,
         out_ranks=[IN[0].rank],
         out_dtypes=[IN[0].dtype],
-        out_shapes=[IN[0].shape]
+        out_shapes=[IN[0].shape],
     )
 
 
-Op('negative', create_identity)
-Op('abs', create_identity)
-Op('ceil', create_identity)
-Op('floor', create_identity)
-Op('round', create_identity)
-Op('trunc', create_identity)
-Op('exp', create_identity)
-Op('sin', create_identity)
-Op('cos', create_identity)
-Op('tan', create_identity)
-Op('sigmoid', create_identity)
-Op('tanh', create_identity)
+Op("negative", create_identity)
+Op("abs", create_identity)
+Op("ceil", create_identity)
+Op("floor", create_identity)
+Op("round", create_identity)
+Op("trunc", create_identity)
+Op("exp", create_identity)
+Op("sin", create_identity)
+Op("cos", create_identity)
+Op("tan", create_identity)
+Op("sigmoid", create_identity)
+Op("tanh", create_identity)
 
 
 def _create_bcast():
@@ -42,22 +42,27 @@ def _create_bcast():
             in_dtypes=List(2, lambda _: Var()),
             in_shapes=[
                 List(m, lambda _: Var(ran=dim_ran, tmpl=True)),
-                List(n, lambda _: Var(ran=dim_ran, tmpl=True))
+                List(n, lambda _: Var(ran=dim_ran, tmpl=True)),
             ],
             extra=[
-                ForAll(Range(end=n), lambda i: Or(
-                    IN[0].shape[m - i - 1] == IN[1].shape[n - i - 1],
-                    IN[0].shape[m - i - 1] == 1,
-                    IN[1].shape[n - i - 1] == 1,
-                ))
+                ForAll(
+                    Range(end=n),
+                    lambda i: Or(
+                        IN[0].shape[m - i - 1] == IN[1].shape[n - i - 1],
+                        IN[0].shape[m - i - 1] == 1,
+                        IN[1].shape[n - i - 1] == 1,
+                    ),
+                )
             ],
             out_num=1,
             out_ranks=[m],
             out_dtypes=[IN[0].dtype],
-            out_shapes=[Concat(
-                IN[0].shape[Range(end=m - n)],
-                List(n, lambda i: IN[0].shape[m - n + i].max(IN[1].shape[i]))
-            )],
+            out_shapes=[
+                Concat(
+                    IN[0].shape[Range(end=m - n)],
+                    List(n, lambda i: IN[0].shape[m - n + i].max(IN[1].shape[i])),
+                )
+            ],
         )
     return TypeSpec(
         attrs=[],
@@ -66,14 +71,17 @@ def _create_bcast():
         in_dtypes=List(2, lambda _: Var()),
         in_shapes=[
             List(m, lambda _: Var(ran=dim_ran, tmpl=True)),
-            List(n, lambda _: Var(ran=dim_ran, tmpl=True))
+            List(n, lambda _: Var(ran=dim_ran, tmpl=True)),
         ],
         extra=[
-            ForAll(Range(end=m.min(n)), lambda i: Or(
-                IN[0].shape[m - i - 1] == IN[1].shape[n - i - 1],
-                IN[0].shape[m - i - 1] == 1,
-                IN[1].shape[n - i - 1] == 1
-            ))
+            ForAll(
+                Range(end=m.min(n)),
+                lambda i: Or(
+                    IN[0].shape[m - i - 1] == IN[1].shape[n - i - 1],
+                    IN[0].shape[m - i - 1] == 1,
+                    IN[1].shape[n - i - 1] == 1,
+                ),
+            )
         ],
         out_num=1,
         out_ranks=[m.max(n)],
@@ -83,20 +91,20 @@ def _create_bcast():
                 m >= n,
                 Concat(
                     IN[0].shape[Range(end=m - n)],
-                    List(n, lambda i: IN[0].shape[m - n + i].max(IN[1].shape[i]))
+                    List(n, lambda i: IN[0].shape[m - n + i].max(IN[1].shape[i])),
                 ),
                 Concat(
                     IN[1].shape[Range(end=n - m)],
-                    List(m, lambda i: IN[0].shape[i].max(IN[1].shape[n - m + i]))
-                )
+                    List(m, lambda i: IN[0].shape[i].max(IN[1].shape[n - m + i])),
+                ),
             )
-        ]
+        ],
     )
 
 
-Op('add', _create_bcast)
-Op('subtract', _create_bcast)
-Op('multiply', _create_bcast)
-Op('divide', _create_bcast)
-Op('maximum', _create_bcast)
-Op('minimum', _create_bcast)
+Op("add", _create_bcast)
+Op("subtract", _create_bcast)
+Op("multiply", _create_bcast)
+Op("divide", _create_bcast)
+Op("maximum", _create_bcast)
+Op("minimum", _create_bcast)

@@ -8,14 +8,28 @@ from numpy.random import Generator
 from .store import ValueStore
 from ..config import params
 from ..expr.array import Tuple, ReduceArray, ReduceRange
-from ..expr.basic import Env, Expr, ExprKind, Const, Var, Symbol, Range, Arith, Cmp, Not, And, Or, \
-    ArithOp, CmpOp
+from ..expr.basic import (
+    Env,
+    Expr,
+    ExprKind,
+    Const,
+    Var,
+    Symbol,
+    Range,
+    Arith,
+    Cmp,
+    Not,
+    And,
+    Or,
+    ArithOp,
+    CmpOp,
+)
 from ..expr.ty import Type, ValueType, BOOL, INT
 from ..expr.visitor import ExprVisitor
 from ..util import NameGenerator, Ref
 
-z3.set_param('smt.phase_selection', 5)
-bit_vec_len = params['solver.bit_vec_len']
+z3.set_param("smt.phase_selection", 5)
+bit_vec_len = params["solver.bit_vec_len"]
 
 
 class Z3SolveError(Exception):
@@ -28,18 +42,24 @@ _z3_var_funcs: Dict[Type, Callable[[str], z3.ExprRef]] = {
 }
 
 _z3_extract_funcs: Dict[
-    Type, Callable[[Union[z3.BoolRef, z3.BitVecNumRef, z3.RatNumRef]], ValueType]] = {
+    Type, Callable[[Union[z3.BoolRef, z3.BitVecNumRef, z3.RatNumRef]], ValueType]
+] = {
     BOOL: z3.BoolRef.__bool__,
     INT: z3.BitVecNumRef.as_long,
 }
 
 
-def solve_smt(var_set: Iterable[Ref[Var]], extra: Iterable[Expr], store: ValueStore,
-              rng: Generator) -> bool:
+def solve_smt(
+    var_set: Iterable[Ref[Var]],
+    extra: Iterable[Expr],
+    store: ValueStore,
+    rng: Generator,
+) -> bool:
     # Create Z3 variables
-    name_gen = NameGenerator('_x')
-    var_map = list((ref, _z3_var_funcs[ref.obj_.type_](name_gen.generate()))
-                   for ref in var_set)
+    name_gen = NameGenerator("_x")
+    var_map = list(
+        (ref, _z3_var_funcs[ref.obj_.type_](name_gen.generate())) for ref in var_set
+    )
 
     # Generate variable range/choice constraints
     solver = z3.Solver()
@@ -54,16 +74,18 @@ def solve_smt(var_set: Iterable[Ref[Var]], extra: Iterable[Expr], store: ValueSt
                 solver.add(z3_var < expr_gen.generate(ran.end_))
         elif var.choices_ is not None:
             choices = cast(Tuple, var.choices_)
-            solver.add(z3.Or(*(z3_var == expr_gen.generate(c) for c in choices.fields_)))
+            solver.add(
+                z3.Or(*(z3_var == expr_gen.generate(c) for c in choices.fields_))
+            )
 
     # Generate extra constraints
     for e in extra:
         solver.add(expr_gen.generate(e))
 
     # Solve constraints multiple times
-    z3.set_param('smt.random_seed', rng.integers(1024))
+    z3.set_param("smt.random_seed", rng.integers(1024))
     cand_models = []
-    for _ in range(params['solver.max_model_cand']):
+    for _ in range(params["solver.max_model_cand"]):
         if solver.check() != z3.sat:
             break
         model = solver.model()
@@ -91,7 +113,6 @@ def solve_smt(var_set: Iterable[Ref[Var]], extra: Iterable[Expr], store: ValueSt
 
 
 class Z3ExprGen(ExprVisitor[Env[z3.ExprRef], z3.ExprRef]):
-
     def __init__(self, var_map: Iterable[t.Tuple[Ref[Var], z3.ExprRef]]):
         super().__init__()
         self._var_map = dict(var_map)
@@ -116,7 +137,9 @@ class Z3ExprGen(ExprVisitor[Env[z3.ExprRef], z3.ExprRef]):
     def visit_range(self, ran: Range, env: Env[z3.ExprRef]) -> z3.ExprRef:
         raise False
 
-    z3_arith_funcs: Dict[ArithOp, Dict[Type, Callable[[z3.ExprRef, z3.ExprRef], z3.ExprRef]]] = {
+    z3_arith_funcs: Dict[
+        ArithOp, Dict[Type, Callable[[z3.ExprRef, z3.ExprRef], z3.ExprRef]]
+    ] = {
         ArithOp.ADD: {
             INT: z3.BitVecRef.__add__,
         },
@@ -137,14 +160,16 @@ class Z3ExprGen(ExprVisitor[Env[z3.ExprRef], z3.ExprRef]):
         },
         ArithOp.MIN: {
             INT: lambda l, r: z3.Cond(l <= r, l, r),
-        }
+        },
     }
 
     def visit_arith(self, arith: Arith, env: Env[z3.ExprRef]) -> z3.ExprRef:
         func = self.z3_arith_funcs[arith.op_][arith.type_]
         return func(self.visit(arith.lhs_, env), self.visit(arith.rhs_, env))
 
-    z3_cmp_funcs: Dict[CmpOp, Dict[Type, Callable[[z3.ExprRef, z3.ExprRef], z3.ExprRef]]] = {
+    z3_cmp_funcs: Dict[
+        CmpOp, Dict[Type, Callable[[z3.ExprRef, z3.ExprRef], z3.ExprRef]]
+    ] = {
         CmpOp.EQ: {
             BOOL: z3.BoolRef.__eq__,
             INT: z3.BitVecRef.__eq__,
@@ -185,8 +210,11 @@ class Z3ExprGen(ExprVisitor[Env[z3.ExprRef], z3.ExprRef]):
             raise Z3SolveError()
         arr = cast(Tuple, red.arr_)
         func = self.z3_arith_funcs[red.op_][red.type_]
-        return reduce(lambda acc, e: func(acc, self.visit(e, env)), arr.fields_,
-                      self.visit(red.init_, env))
+        return reduce(
+            lambda acc, e: func(acc, self.visit(e, env)),
+            arr.fields_,
+            self.visit(red.init_, env),
+        )
 
     def visit_reduce_index(self, red: ReduceRange, env: Env[z3.ExprRef]) -> z3.ExprRef:
         ran = red.ran_
@@ -197,7 +225,11 @@ class Z3ExprGen(ExprVisitor[Env[z3.ExprRef], z3.ExprRef]):
         func = self.z3_arith_funcs[red.op_][red.type_]
         return reduce(
             lambda acc, idx: func(
-                acc, self.visit(red.body_, env + (red.idx_, self.visit_const(Const(idx), env)))
+                acc,
+                self.visit(
+                    red.body_, env + (red.idx_, self.visit_const(Const(idx), env))
+                ),
             ),
-            range(begin, end), self.visit(red.init_, env)
+            range(begin, end),
+            self.visit(red.init_, env),
         )

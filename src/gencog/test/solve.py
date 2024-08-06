@@ -20,7 +20,7 @@ def test_all_ops():
     tested_specs = set()
     for op in OpRegistry.ops():
         if Ref(op.spec_f_) in tested_specs:
-            print(f'{op} specification tested before.')
+            print(f"{op} specification tested before.")
             continue
         spec = op.spec
         _test_spec(op.name_, spec)
@@ -54,7 +54,7 @@ def _compile_relay(op: str, info: OpTypeInfo):
     if args.separate:
         result = run_process(_compile_func, (src,))
         if args.verbose and result.exitcode != 0:
-            print(f'Compilation error: Exit code {result.exitcode}.', file=stderr)
+            print(f"Compilation error: Exit code {result.exitcode}.", file=stderr)
     else:
         _compile_func(src)
 
@@ -62,9 +62,9 @@ def _compile_relay(op: str, info: OpTypeInfo):
 def _compile_func(src: str):
     mod = parser.parse(src)
     with transform.PassContext(opt_level=3):
-        lib = relay.build(mod, 'llvm')
-    dev = device('cpu', 0)
-    GraphModule(lib['default'](dev))
+        lib = relay.build(mod, "llvm")
+    dev = device("cpu", 0)
+    GraphModule(lib["default"](dev))
     return dict()
 
 
@@ -72,38 +72,43 @@ def _gen_relay(op: str, info: OpTypeInfo):
     # Prelude
     buf = CodeBuffer()
     buf.writeln('#[version = "0.0.5"]')
-    buf.write('def @main')
+    buf.write("def @main")
 
     # Tensor types
     buf.write_pos(
-        map(lambda p: lambda: buf.write(f'%x{p[0]}: {p[1]}'), enumerate(info.in_types_))
+        map(lambda p: lambda: buf.write(f"%x{p[0]}: {p[1]}"), enumerate(info.in_types_))
     )
-    buf.write(' -> ')
+    buf.write(" -> ")
     buf.write(str(info.out_types_[0]))
 
     # Print op
-    buf.writeln(' {')
+    buf.writeln(" {")
     with buf.indent():
-        buf.write('%0 = ')
+        buf.write("%0 = ")
         buf.write(op)
-        args = map(lambda i: f'%x{i}', range(len(info.in_types_)))
+        args = map(lambda i: f"%x{i}", range(len(info.in_types_)))
         if op in tuple_in_ops:
-            arg_str = str(tuple(args)).replace('\'', '')
+            arg_str = str(tuple(args)).replace("'", "")
         else:
-            arg_str = ', '.join(args)
-        buf.write_pos([
-            lambda: buf.write(arg_str),
-            lambda: buf.write_named(
-                map(lambda a: (a[0], lambda: buf.write(fmt_val(a[1]))), info.attrs_),
-                prefix='', suffix=''
-            )
-        ])
-        buf.writeln(';')
-        buf.write('%0')
+            arg_str = ", ".join(args)
+        buf.write_pos(
+            [
+                lambda: buf.write(arg_str),
+                lambda: buf.write_named(
+                    map(
+                        lambda a: (a[0], lambda: buf.write(fmt_val(a[1]))), info.attrs_
+                    ),
+                    prefix="",
+                    suffix="",
+                ),
+            ]
+        )
+        buf.writeln(";")
+        buf.write("%0")
         if len(info.out_types_) > 1 or op in tuple_out_ops:
-            buf.write('.0')
+            buf.write(".0")
         buf.writeln()
-    buf.writeln('}')
+    buf.writeln("}")
 
     return str(buf)
 
@@ -111,27 +116,34 @@ def _gen_relay(op: str, info: OpTypeInfo):
 def parse_args():
     global args
     p = ArgumentParser()
-    p.add_argument('-a', '--all', action='store_true', help='Test all operators.')
-    p.add_argument('-g', '--graph', action='store_true',
-                   help='Specify type constraints for graph.')
-    p.add_argument('-v', '--verbose', action='store_true', help='Run in verbose mode.')
-    p.add_argument('-s', '--separate', action='store_true',
-                   help='Compile module in a separate process.')
-    p.add_argument('-n', '--name', type=str, help='Name of the operator to be tested.')
-    p.add_argument('-i', '--iter', type=int, help='Iteration number of each operator.')
-    p.add_argument('--seed', type=int, default=42, help='Random seed of test case generator.')
+    p.add_argument("-a", "--all", action="store_true", help="Test all operators.")
+    p.add_argument(
+        "-g", "--graph", action="store_true", help="Specify type constraints for graph."
+    )
+    p.add_argument("-v", "--verbose", action="store_true", help="Run in verbose mode.")
+    p.add_argument(
+        "-s",
+        "--separate",
+        action="store_true",
+        help="Compile module in a separate process.",
+    )
+    p.add_argument("-n", "--name", type=str, help="Name of the operator to be tested.")
+    p.add_argument("-i", "--iter", type=int, help="Iteration number of each operator.")
+    p.add_argument(
+        "--seed", type=int, default=42, help="Random seed of test case generator."
+    )
     args = p.parse_args()
 
     TypeSpec.for_graph = args.graph
     if not args.separate:
-        environ['TVM_BACKTRACE'] = '1'
+        environ["TVM_BACKTRACE"] = "1"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parse_args()
     if args.all:
         test_all_ops()
     else:
         if args.name is None:
-            raise ValueError('Operator name not specified.')
+            raise ValueError("Operator name not specified.")
         test_one_op(args.name)

@@ -15,38 +15,39 @@ from tvm.contrib.debugger.debug_executor import GraphModuleDebug
 from .base_utils import Checkor
 from .fastfuzz import Fuzzer
 from .calculator2 import Calculate_error
-from .seed import seed3,seed1,seed2
+from .seed import seed3, seed1, seed2
 import re
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 outputnum = 4
 Boundlow, Boundhigh = -5, 5
 TensorDict = Dict[str, np.ndarray]
 target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
-Input_size = (4,3)
-Input_size2 = (3,3)
-Disabled_pass = 'SimplifyExpr'
+Input_size = (4, 3)
+Input_size2 = (3, 3)
+Disabled_pass = "SimplifyExpr"
 case_id = 1086
-Input_size = (3,4,4)
+Input_size = (3, 4, 4)
 
-seedlist = [1051,1047,8,9,1050]#1051,1047,8,9,
+seedlist = [1051, 1047, 8, 9, 1050]  # 1051,1047,8,9,
 lastdirnum = 1090
 Max_opr_num = 30
-Dtype = 'float32'
-path = './tests/out'
+Dtype = "float32"
+path = "./tests/out"
 
 ## basic operations
 ## !!! update pass
-a:IRModule
-b:GraphModule
-c:GraphModuleDebug
-d:relay.function.Function
-e:relay.Type
-e:relay.Var.name_hint
-e:relay.Var.checked_type
-f:tvm.ir.tensor_type.TensorType
+a: IRModule
+b: GraphModule
+c: GraphModuleDebug
+d: relay.function.Function
+e: relay.Type
+e: relay.Var.name_hint
+e: relay.Var.checked_type
+f: tvm.ir.tensor_type.TensorType
 #############################################################
 #################################   error propagation model
 
@@ -61,15 +62,18 @@ f:tvm.ir.tensor_type.TensorType
 # nn.upsampling3d, nn.pad, nn.layer_norm, nn.instance_norm, nn.group_norm, nn.batch_norm, nn.dense, nn.batch_flatten]
 
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 from numpy.random import Generator, PCG64
-from gencog.expr.ty import  DataType, ValueType, BOOL, INT, FLOAT
+from gencog.expr.ty import DataType, ValueType, BOOL, INT, FLOAT
 from gencog.graph import GraphGenerator, print_relay
 from gencog.spec import OpRegistry
 from tvm.relay.analysis import free_vars, free_type_vars
 from gencog.debug import ModuleError
+
 # import seed model      ---> get output size and wrap seedmodel as a call
 # expand(without conv2d) ---> randomerror > 2* seedmodel --->   save after 20 cycles
+
 
 def expand():
     #############################################################
@@ -85,20 +89,20 @@ def expand():
     ##############################################################
     global case_id
     global path
-    seedpath = './tests/out/'
+    seedpath = "./tests/out/"
     seedss = []
     for i in seedlist:
-        seedp = seedpath+str(i)+'/code.txt'
-        with open(seedp,'r')as fp:
+        seedp = seedpath + str(i) + "/code.txt"
+        with open(seedp, "r") as fp:
             seedss.append(relay.parse(fp.read()))
-    for ten, mod in enumerate(seedss):# seed1,seed2,
+    for ten, mod in enumerate(seedss):  # seed1,seed2,
         # mod = relay.parse(seed)
         # print( mod.show())
-        fn = mod['main']
+        fn = mod["main"]
         pass_params0 = []
         for i in fn.params[:]:
-                pass_params0.append(relay.var('pz'+i.name_hint,i.checked_type))
-        newop = relay.Call(fn,pass_params0)
+            pass_params0.append(relay.var("pz" + i.name_hint, i.checked_type))
+        newop = relay.Call(fn, pass_params0)
         Last_Input = fn.ret_type
         inputshape = [i.value for i in list(Last_Input.shape)]
         print(inputshape)
@@ -118,33 +122,41 @@ def expand():
         # b = relay.TensorType([1, 2], 'float16')
         # c = tvm.ir.type.TupleType([a,b])
         # print(c)
-        while case_id<=lastdirnum:
-            rng = Generator(PCG64(seed=random.randint(0,1e6)))
+        while case_id <= lastdirnum:
+            rng = Generator(PCG64(seed=random.randint(0, 1e6)))
             gen = GraphGenerator(OpRegistry.ops(), rng)
-            if Last_Input.dtype == 'float16':
-                graph = gen.imagegenerate(imageshape=inputshape, imagedtype=DataType.f(16),Max_opr_num=Max_opr_num) # 1st:5+expand 10 =15; 2:
+            if Last_Input.dtype == "float16":
+                graph = gen.imagegenerate(
+                    imageshape=inputshape,
+                    imagedtype=DataType.f(16),
+                    Max_opr_num=Max_opr_num,
+                )  # 1st:5+expand 10 =15; 2:
             else:
-                graph = gen.imagegenerate(imageshape=inputshape, imagedtype=DataType.f(32),Max_opr_num=Max_opr_num)
-            if (len(graph.outputs_)>outputnum):
+                graph = gen.imagegenerate(
+                    imageshape=inputshape,
+                    imagedtype=DataType.f(32),
+                    Max_opr_num=Max_opr_num,
+                )
+            if len(graph.outputs_) > outputnum:
                 continue
             code = print_relay(graph)
-            #mod2 = parser.parse(code)
+            # mod2 = parser.parse(code)
             mod2 = relay.parse(code)
-            func2 = mod2['main']
+            func2 = mod2["main"]
             pass_params = []
             for i in func2.params[1:]:
-                pass_params.append(relay.var('p'+i.name_hint,i.checked_type))
+                pass_params.append(relay.var("p" + i.name_hint, i.checked_type))
             params = pass_params
-            new_op2 = relay.Call(func2, [newop]+params)
-            new_f = relay.Function(pass_params0+params,new_op2)
+            new_op2 = relay.Call(func2, [newop] + params)
+            new_f = relay.Function(pass_params0 + params, new_op2)
             mod = tvm.IRModule.from_expr(new_f)
-            case_path = os.path.join(path,str(case_id))
-            if(not os.path.exists(case_path)):
+            case_path = os.path.join(path, str(case_id))
+            if not os.path.exists(case_path):
                 os.mkdir(case_path)
             else:
-                if os.path.exists(case_path+'/compiled_lib1.tar'):
-                    os.remove(case_path+'/compiled_lib1.tar')
-            casepath = case_path+'/code.txt'
+                if os.path.exists(case_path + "/compiled_lib1.tar"):
+                    os.remove(case_path + "/compiled_lib1.tar")
+            casepath = case_path + "/code.txt"
             seq = tvm.transform.Sequential(
                 [
                     relay.transform.InferType(),
@@ -155,19 +167,19 @@ def expand():
             with tvm.transform.PassContext(opt_level=4):
                 mod2 = seq(mod)
             try:
-                if  not tvm.ir.structural_equal(mod, mod2):
-                    checkor = Calculate_error(mod = mod2)
-                    if(checkor.random_difference_test()>1e-9 ):
-                        print('------- succeed generate------')
+                if not tvm.ir.structural_equal(mod, mod2):
+                    checkor = Calculate_error(mod=mod2)
+                    if checkor.random_difference_test() > 1e-9:
+                        print("------- succeed generate------")
                         print(casepath)
-                        with open(casepath,'w') as fp:
+                        with open(casepath, "w") as fp:
                             fp.write(mod2.astext())
-                            case_id+=1
+                            case_id += 1
                         break
                     else:
                         continue
-                else :
-                    print('-------!!! not succeed undefuse------')
+                else:
+                    print("-------!!! not succeed undefuse------")
                     continue
             except Exception as e:
                 continue

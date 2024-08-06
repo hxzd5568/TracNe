@@ -1,5 +1,5 @@
 import tvm
-from tvm import relay,runtime
+from tvm import relay, runtime
 import numpy as np
 import queue
 import shutil
@@ -25,13 +25,14 @@ import tvm.testing
 from tvm.contrib import graph_executor
 from tvm.contrib.nvcc import have_fp16
 from tvm.contrib import cudnn, utils
+
 # from relay.utils.tag_span import _create_span, _set_span, _verify_structural_equal_with_span
 import torch
 from torch.nn import Module
 from torch.nn import functional as F
 import torchvision
 
-case_path = ''
+case_path = ""
 TensorDict = Dict[str, np.ndarray]
 target = tvm.target.Target("llvm", host="llvm")
 layout = None
@@ -42,6 +43,7 @@ sys.setrecursionlimit(10000)
 
 torch.set_printoptions(precision=9)
 np.set_printoptions(precision=9)
+
 
 def verify_model_with_input(
     test_func,
@@ -54,7 +56,6 @@ def verify_model_with_input(
     atol=1e-5,
     assert_shape_only=False,
     validate_structural_equal=True,
-
 ):
     """Generic function to generate and compare Pytorch and TVM output"""
     input_dict = input_dict or {}
@@ -64,10 +65,14 @@ def verify_model_with_input(
     input_names = [f"input{idx}" for idx, _ in enumerate(input_data)]
     input_shapes = list(zip(input_names, [inp.shape for inp in input_data]))
     with tvm.testing.disable_span_filling():
-        mod, params = relay.frontend.from_pytorch(trace, input_shapes, custom_convert_map)
+        mod, params = relay.frontend.from_pytorch(
+            trace, input_shapes, custom_convert_map
+        )
     if validate_structural_equal:
         with tvm.testing.enable_span_filling():
-            mod_with_span, _ = relay.frontend.from_pytorch(trace, input_shapes, custom_convert_map)
+            mod_with_span, _ = relay.frontend.from_pytorch(
+                trace, input_shapes, custom_convert_map
+            )
         assert tvm.ir.structural_equal(mod, mod_with_span, map_free_vars=True)
 
     # with tvm.transform.PassContext(opt_level=3):
@@ -89,19 +94,17 @@ def verify_model_with_input(
     #                 print(baseline_outputs, compiled_output,input_data)
     # to c
     with tvm.transform.PassContext(opt_level=3):
-        lib = relay.build(mod, tvm.target.Target('c'), params=params)
+        lib = relay.build(mod, tvm.target.Target("c"), params=params)
     if path is not None:
-        lib.export_library('targetcode/'+f"{path}compiled_model.tar")
+        lib.export_library("targetcode/" + f"{path}compiled_model.tar")
     else:
-        lib.export_library('targetcode/'+"compiled_model.tar")
-
+        lib.export_library("targetcode/" + "compiled_model.tar")
 
 
 def savetorch(model):
     global case_path
-    model_scripted = torch.jit.script(model) # Export to TorchScript
-    model_scripted.save(case_path+'/model_scripted.pt')
-
+    model_scripted = torch.jit.script(model)  # Export to TorchScript
+    model_scripted.save(case_path + "/model_scripted.pt")
 
 
 def test_dnn():
@@ -109,7 +112,8 @@ def test_dnn():
     # 2. repare tmod, mod1, mod5
     # 3. fuzz
     import time
-    t0 =time.time()
+
+    t0 = time.time()
 
     torch.set_grad_enabled(False)
 
@@ -208,48 +212,72 @@ def test_dnn():
     class Square(Module):
         def forward(self, *args):
             return torch.square(args[0])
-    input_data = torch.tensor(1+9e-20)
 
+    input_data = torch.tensor(1 + 9e-20)
 
-    input_shape = [1,3]
+    input_shape = [1, 3]
     input_data = [torch.rand(input_shape).float()]
-    m = torch.nn.Conv2d(16, 33, (3, 5), stride=(2, 1), dilation=(3, 1),padding_mode='reflect')#replicate,reflect
+    m = torch.nn.Conv2d(
+        16, 33, (3, 5), stride=(2, 1), dilation=(3, 1), padding_mode="reflect"
+    )  # replicate,reflect
 
     # input = torch.randn(1)
     # output = m(input)
     # verify_model_with_input(m.float().eval(), input_data=[input])
     input_data = torch.randn(1)
     path = 1
-    verify_model_with_input(Square().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Square().float().eval(), input_data=input_data, path=str(path)
+    )
     path += 1
-    verify_model_with_input(Sqrt1().float().eval(), input_data=input_data,path=str(path))
-    path += 1
-
-    verify_model_with_input(Cos1().float().eval(), input_data=input_data,path=str(path))
-    path += 1
-
-    verify_model_with_input(Cosh1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Sqrt1().float().eval(), input_data=input_data, path=str(path)
+    )
     path += 1
 
-    verify_model_with_input(Sin1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Cos1().float().eval(), input_data=input_data, path=str(path)
+    )
     path += 1
 
-    verify_model_with_input(Sinh1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Cosh1().float().eval(), input_data=input_data, path=str(path)
+    )
     path += 1
 
-    verify_model_with_input(Log2_1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Sin1().float().eval(), input_data=input_data, path=str(path)
+    )
     path += 1
 
-    verify_model_with_input(Log10_1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Sinh1().float().eval(), input_data=input_data, path=str(path)
+    )
     path += 1
 
-    verify_model_with_input(Log1p_1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Log2_1().float().eval(), input_data=input_data, path=str(path)
+    )
     path += 1
 
-    verify_model_with_input(Exp1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Log10_1().float().eval(), input_data=input_data, path=str(path)
+    )
+    path += 1
+
+    verify_model_with_input(
+        Log1p_1().float().eval(), input_data=input_data, path=str(path)
+    )
+    path += 1
+
+    verify_model_with_input(
+        Exp1().float().eval(), input_data=input_data, path=str(path)
+    )
 
     path += 1
-    verify_model_with_input(Erf1().float().eval(), input_data=input_data,path=str(path))
+    verify_model_with_input(
+        Erf1().float().eval(), input_data=input_data, path=str(path)
+    )
 
 
 test_dnn()

@@ -6,15 +6,18 @@ import re
 ops = dict()
 
 # '/home/user/tvm/python/tvm/relay/op/nn' '/home/user/tvm/python/tvm/relay/op/' '/home/user/tvm/python/tvm/relay/op/random
-path = '/home/user/tvm/python/tvm/relay/op/' # path-to-tvm
+path = "/home/user/tvm/python/tvm/relay/op/"  # path-to-tvm
+
+
 def getkeys(subdirs):
-    keys = []#['complex','simple']
-    subdirs.remove('strategy')
-    subdirs.remove('__pycache__')
+    keys = []  # ['complex','simple']
+    subdirs.remove("strategy")
+    subdirs.remove("__pycache__")
     for i in subdirs:
-       keys.append(i)
-    print('keys',keys)
+        keys.append(i)
+    print("keys", keys)
     return keys
+
 
 import os
 
@@ -27,134 +30,161 @@ def gci(filepath):
         if os.path.isdir(fi_d):
             gci(fi_d)
         else:
-            if fi[0] == '_' and fi[1] != '_' and fi[-2:]=='py':
-                print('handle', fi_d)
-                with open(fi_d, 'r') as fp:
+            if fi[0] == "_" and fi[1] != "_" and fi[-2:] == "py":
+                print("handle", fi_d)
+                with open(fi_d, "r") as fp:
                     text = fp.read()
-                pat = 'register.*?\"(.*?)\"'
-                ops = re.findall(pat,text,re.S|re.M)
-                ops = [i.replace('.', '_') for i in ops]
+                pat = 'register.*?"(.*?)"'
+                ops = re.findall(pat, text, re.S | re.M)
+                ops = [i.replace(".", "_") for i in ops]
                 global opsk
                 opsk = opsk + ops
-                    # for line in text:
-                    #     if 'register' in line:
-                    #         matched = re.search('(".+?")', line.replace('.', '_'))
-                    #         if matched:
-                    #             global opsk
-                    #             opsk.append(matched.group().strip('"'))
+                # for line in text:
+                #     if 'register' in line:
+                #         matched = re.search('(".+?")', line.replace('.', '_'))
+                #         if matched:
+                #             global opsk
+                #             opsk.append(matched.group().strip('"'))
 
 
 # traverse subdirs recursively
 # gci(path)
-opsk= []
-subdirs =[i for i in  os.listdir(path) if os.path.isdir(os.path.join(path,i))  ]
-files =[i for i in  os.listdir(path) if os.path.isfile(os.path.join(path,i)) and i[0]=='_' and i[1]!='_' ]
+opsk = []
+subdirs = [i for i in os.listdir(path) if os.path.isdir(os.path.join(path, i))]
+files = [
+    i
+    for i in os.listdir(path)
+    if os.path.isfile(os.path.join(path, i)) and i[0] == "_" and i[1] != "_"
+]
 subdirs = getkeys(subdirs)
 print(files)
 for dir in subdirs:
-   subpath =  os.path.join(path,dir)
-   gci(subpath)
-   opsk = list(set(opsk))
-   opsk = sorted(opsk,reverse=True)
-   ops[dir] = opsk
-   opsk= []
+    subpath = os.path.join(path, dir)
+    gci(subpath)
+    opsk = list(set(opsk))
+    opsk = sorted(opsk, reverse=True)
+    ops[dir] = opsk
+    opsk = []
 
 
 # op/_tensor.py etc direct files in origin dir
 for file in files:
-    filepath = os.path.join(path,file)
-    if file[0]=='_' and file[1]!='_' and file[-2:]=='py':
+    filepath = os.path.join(path, file)
+    if file[0] == "_" and file[1] != "_" and file[-2:] == "py":
         # print(dir+ '\\'+  filename)
         with open(filepath) as fp:
             text = fp.read()
-        pat = 'register.*?\"(.*?)\"'
-        op = re.findall(pat,text,re.S|re.M)
-        op = [i.replace('.', '_') for i in op]
+        pat = 'register.*?"(.*?)"'
+        op = re.findall(pat, text, re.S | re.M)
+        op = [i.replace(".", "_") for i in op]
         file = file[1:-3]
-        ops[file] =  op
-            # for line in text:
-            #     if 'register' in line:
-            #         matched = re.search('(".+?")',line.replace('.','_'))
-            #         if matched:
-            #             ops['simple'].append(matched.group().strip('"'))
-allops= []
+        ops[file] = op
+        # for line in text:
+        #     if 'register' in line:
+        #         matched = re.search('(".+?")',line.replace('.','_'))
+        #         if matched:
+        #             ops['simple'].append(matched.group().strip('"'))
+allops = []
 opscoding = dict()
 for key in ops.keys():
     ops[key] = list(set(ops[key]))
-    ops[key] = sorted(ops[key],reverse=True)
-    allops+= ops[key]
-    print(key,len(ops[key]),ops[key])
+    ops[key] = sorted(ops[key], reverse=True)
+    allops += ops[key]
+    print(key, len(ops[key]), ops[key])
 allops = list(set(allops))
 print(len(allops))
 
 
-#------------------------------dict generation
+# ------------------------------dict generation
 for key in ops.keys():
     for op in ops[key]:
         # subdirs
-        if key =='dyn' :
-            opscoding[op]=500
-        elif key =='image':
-            opscoding[op]=300
-        elif key =='vision'or key =='random':
-            opscoding[op]=200
-        elif key =='nn':
-            if 'without_weight' in op:
-                opscoding[op]=100
-            elif 'weight_transform' in op or 'flatten' in op or 'nn_sparse_transpose'==op or \
-                'sparse_fill_empty_rows' in op or 'sparse_to_dense' in op or 'sparse_reshape'in op or\
-                  'batch_to' in op or 'space_to' in op or 'depth_to' in op or 'pad' in op  :
-                opscoding[op]=0
-            elif 'conv3d' in op or 'conv2d'in op or 'dense'in op or 'conv1d'in op or 'matmul'in op:
-                opscoding[op]=100
-            elif 'pool' in op:
-                opscoding[op]=50
-            elif 'softmax' in op or 'relu' in op or 'norm' in op or 'lrn' in op:
-                opscoding[op]=20
-            elif 'add' in op:
-                opscoding[op]=2
+        if key == "dyn":
+            opscoding[op] = 500
+        elif key == "image":
+            opscoding[op] = 300
+        elif key == "vision" or key == "random":
+            opscoding[op] = 200
+        elif key == "nn":
+            if "without_weight" in op:
+                opscoding[op] = 100
+            elif (
+                "weight_transform" in op
+                or "flatten" in op
+                or "nn_sparse_transpose" == op
+                or "sparse_fill_empty_rows" in op
+                or "sparse_to_dense" in op
+                or "sparse_reshape" in op
+                or "batch_to" in op
+                or "space_to" in op
+                or "depth_to" in op
+                or "pad" in op
+            ):
+                opscoding[op] = 0
+            elif (
+                "conv3d" in op
+                or "conv2d" in op
+                or "dense" in op
+                or "conv1d" in op
+                or "matmul" in op
+            ):
+                opscoding[op] = 100
+            elif "pool" in op:
+                opscoding[op] = 50
+            elif "softmax" in op or "relu" in op or "norm" in op or "lrn" in op:
+                opscoding[op] = 20
+            elif "add" in op:
+                opscoding[op] = 2
             else:
-                opscoding[op]=30
+                opscoding[op] = 30
         # files
-        elif key =='reduce' or key== 'algorithm' or key == 'math':
-            opscoding[op]=20
-        elif key =='transform':
-            opscoding[op]=0
-        elif key =='tensor_grad':
+        elif key == "reduce" or key == "algorithm" or key == "math":
+            opscoding[op] = 20
+        elif key == "transform":
+            opscoding[op] = 0
+        elif key == "tensor_grad":
             continue
-        elif key == 'tensor':
-            if 'log' in op or 'exp'in op or 'power'in op or 'sigmoid' in op:
-                opscoding[op]=10
-            elif 'rsqrt' == op or 'divide'==op:#!!!
-                opscoding[op]=4
-            elif 'isinf'==op:  # special collision
-                opscoding[op]=2
-            elif 'sin' in op or 'cos' in op or 'tan' in op:
-                opscoding[op]=5
-            elif 'cast' in op or 'to_like' in op or 'transpose'==op:
-                opscoding[op]=0
-            elif 'bit'in op or  'shift' in op or 'less' in op or 'greater' in op or \
-                'equal' in op or 'logic' in op or 'like' in op:
-                opscoding[op]=1
+        elif key == "tensor":
+            if "log" in op or "exp" in op or "power" in op or "sigmoid" in op:
+                opscoding[op] = 10
+            elif "rsqrt" == op or "divide" == op:  #!!!
+                opscoding[op] = 4
+            elif "isinf" == op:  # special collision
+                opscoding[op] = 2
+            elif "sin" in op or "cos" in op or "tan" in op:
+                opscoding[op] = 5
+            elif "cast" in op or "to_like" in op or "transpose" == op:
+                opscoding[op] = 0
+            elif (
+                "bit" in op
+                or "shift" in op
+                or "less" in op
+                or "greater" in op
+                or "equal" in op
+                or "logic" in op
+                or "like" in op
+            ):
+                opscoding[op] = 1
             else:
-                opscoding[op]=2
+                opscoding[op] = 2
         else:
-            print(key,op,'can not be handled') # reshape_nop
+            print(key, op, "can not be handled")  # reshape_nop
 
 import json
-dpath = './src/op'
-dumpath = os.path.join(dpath,'opcoding.json')
-dumpath2 = os.path.join(dpath,'opname.json')
+
+dpath = "./src/op"
+dumpath = os.path.join(dpath, "opcoding.json")
+dumpath2 = os.path.join(dpath, "opname.json")
 # special ops handle
 
-opscoding['reshape_nop'] = 0
+opscoding["reshape_nop"] = 0
 
-opname = sorted(opscoding,key=lambda item: item[0],reverse=True)
+opname = sorted(opscoding, key=lambda item: item[0], reverse=True)
 print(opscoding)
-with open(dumpath,'w') as fp:
-    json.dump(opscoding,fp)
-with open(dumpath2,'w') as fp:
-    json.dump(opname,fp)
+with open(dumpath, "w") as fp:
+    json.dump(opscoding, fp)
+with open(dumpath2, "w") as fp:
+    json.dump(opname, fp)
 """
 keys ['random', 'memory', 'image', 'dyn', 'contrib', 'nn', 'vm', 'vision', 'annotation']
 ['_reduce.py', '_algorithm.py', '_math.py', '_make.py', '_transform.py', '_tensor_grad.py', '_tensor.py']

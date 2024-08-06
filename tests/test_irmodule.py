@@ -1,4 +1,3 @@
-
 import pytest
 
 import tvm
@@ -32,6 +31,7 @@ def test_build_relay_graph_():
         _ = relay.backend._backend.build(lowered_funcs, target)
         print(grc._get_irmodule())
         print(grc._list_params_name())
+
     def add(shape, dtype):
         lhs = relay.var("A", shape=shape, dtype=dtype)
         rhs = relay.var("B", shape=shape, dtype=dtype)
@@ -41,4 +41,6 @@ def test_build_relay_graph_():
         return mod
 
     build_graph(add((1, 8), "float32"), tvm.target.Target("llvm"))
+
+
 test_build_relay_graph_()

@@ -74,48 +74,48 @@ def @main(%x0: Tensor[(5), float16] /* ty=Tensor[(5), float16] span=from_string:
 
 #[metadata]
 {
-  "root": 1, 
+  "root": 1,
   "nodes": [
     {
       "type_key": ""
-    }, 
+    },
     {
-      "type_key": "Map", 
+      "type_key": "Map",
       "keys": [
         "relay.attrs.DensePackAttrs"
-      ], 
+      ],
       "data": [2]
-    }, 
+    },
     {
-      "type_key": "Array", 
+      "type_key": "Array",
       "data": [3, 5]
-    }, 
+    },
     {
-      "type_key": "relay.attrs.DensePackAttrs", 
+      "type_key": "relay.attrs.DensePackAttrs",
       "attrs": {
-        "out_dtype": "float16", 
-        "units": "0", 
+        "out_dtype": "float16",
+        "units": "0",
         "weight_layout": "4"
       }
-    }, 
+    },
     {
-      "type_key": "runtime.String", 
+      "type_key": "runtime.String",
       "repr_str": "NC3n"
-    }, 
+    },
     {
-      "type_key": "relay.attrs.DensePackAttrs", 
+      "type_key": "relay.attrs.DensePackAttrs",
       "attrs": {
-        "out_dtype": "float16", 
-        "units": "0", 
+        "out_dtype": "float16",
+        "units": "0",
         "weight_layout": "6"
       }
-    }, 
+    },
     {
-      "type_key": "runtime.String", 
+      "type_key": "runtime.String",
       "repr_str": "NC2n"
     }
-  ], 
-  "b64ndarrays": [], 
+  ],
+  "b64ndarrays": [],
   "attrs": {"tvm_version": "0.12.dev0"}
 }
 

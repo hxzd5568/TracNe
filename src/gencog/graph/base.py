@@ -16,6 +16,7 @@ class Vertex:
     """
     Base class of computation graph vertex.
     """
+
     kind: VertexKind
 
 
@@ -23,6 +24,7 @@ class Input(Vertex):
     """
     Input placeholder of computation graph.
     """
+
     kind = VertexKind.IN
 
     def __init__(self, ty: TensorType, is_param: bool):
@@ -34,9 +36,10 @@ class Output(Vertex):
     """
     Output indicator of computation graph.
     """
+
     kind = VertexKind.OUT
 
-    def __init__(self, value: 'Value'):
+    def __init__(self, value: "Value"):
         self.value_ = value
         value.uses_.append(self)
 
@@ -45,10 +48,16 @@ class Operation(Vertex):
     """
     Call of operator on tensor values.
     """
+
     kind = VertexKind.OPR
 
-    def __init__(self, op: Op, attrs: List[Tuple[str, ValueType]],
-                 inputs: List['Value'], outputs: List['Value']):
+    def __init__(
+        self,
+        op: Op,
+        attrs: List[Tuple[str, ValueType]],
+        inputs: List["Value"],
+        outputs: List["Value"],
+    ):
         self.op_ = op
         self.attrs_ = attrs
         self.inputs_ = inputs
@@ -81,7 +90,7 @@ class Graph:
         self.oprs_ = oprs_
 
 
-R = TypeVar('R')
+R = TypeVar("R")
 
 
 class GraphVisitor(Generic[R]):

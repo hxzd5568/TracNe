@@ -1,5 +1,5 @@
 import tvm
-from tvm import relay,runtime
+from tvm import relay, runtime
 import os
 import numpy as np
 import queue
@@ -17,7 +17,12 @@ from tvm.contrib.debugger.debug_executor import GraphModuleDebug
 import re
 from tvm.relay.backend import Runtime, Executor, graph_executor_codegen
 import time
-from .mutate_utils import generaltactics, simpleDE, simulated_annealing, genetic_algorithm
+from .mutate_utils import (
+    generaltactics,
+    simpleDE,
+    simulated_annealing,
+    genetic_algorithm,
+)
 
 
 speed1, speed2, speed3, speed4 = 2, 10, 1, 15
@@ -27,34 +32,54 @@ TensorDict = Dict[str, np.ndarray]
 target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
-def boundarr(x,inputsize):
-        arr = np.empty( shape = inputsize).flatten()
-        arr.fill(x)
-        return arr
 
-def save_model( gmod1,gmod5,case_path):
-    gmod1.export_library(case_path+"/compiled_lib1.tar")
-    gmod5.export_library(case_path+"/compiled_lib5.tar")
-def save_arr( params,case_path):
-                    print('type',type(list(params.values())[0]))
-                    inputarr = dict()
-                    for k, v in params.items():
-                        inputarr[k]=v.numpy()
-                    path_params = os.path.join(case_path, 'oinputs.npz')
-                    np.savez(path_params, **inputarr)
-def run_gmod( gmod: GraphModule, inputs: Dict[str, np.ndarray]=None) -> List[np.ndarray]:
-        ninputs = dict()
 
-        for k,v in inputs.items():
-             ninputs[k] = tvm.nd.array(v)
-        a,b,c =list(ninputs.values())[0], list(ninputs.values())[1],list(ninputs.values())[2]
-        gmod(a,b,c)
-        return [c.numpy()]
+def boundarr(x, inputsize):
+    arr = np.empty(shape=inputsize).flatten()
+    arr.fill(x)
+    return arr
+
+
+def save_model(gmod1, gmod5, case_path):
+    gmod1.export_library(case_path + "/compiled_lib1.tar")
+    gmod5.export_library(case_path + "/compiled_lib5.tar")
+
+
+def save_arr(params, case_path):
+    print("type", type(list(params.values())[0]))
+    inputarr = dict()
+    for k, v in params.items():
+        inputarr[k] = v.numpy()
+    path_params = os.path.join(case_path, "oinputs.npz")
+    np.savez(path_params, **inputarr)
+
+
+def run_gmod(
+    gmod: GraphModule, inputs: Dict[str, np.ndarray] = None
+) -> List[np.ndarray]:
+    ninputs = dict()
+
+    for k, v in inputs.items():
+        ninputs[k] = tvm.nd.array(v)
+    a, b, c = (
+        list(ninputs.values())[0],
+        list(ninputs.values())[1],
+        list(ninputs.values())[2],
+    )
+    gmod(a, b, c)
+    return [c.numpy()]
+
 
 class Fuzzer:
-    def __init__(self,path,fmod1=None,fmod5=None,input=None,# params1,params5
-                lowbound:float=-5, highbound:float=5,
-                ):
+    def __init__(
+        self,
+        path,
+        fmod1=None,
+        fmod5=None,
+        input=None,  # params1,params5
+        lowbound: float = -5,
+        highbound: float = 5,
+    ):
         self.case_path = path
         self.Boundlow, self.Boundhigh = lowbound, highbound
         # self.params1 = params1
@@ -64,67 +89,87 @@ class Fuzzer:
             self.fmod5 = fmod5
             self.input = input
         else:
-            self.fmod1 = tvm.runtime.load_module(self.case_path+"/compiled_lib1.tar")
-            self.fmod5 = tvm.runtime.load_module(self.case_path+"/compiled_lib5.tar")
+            self.fmod1 = tvm.runtime.load_module(self.case_path + "/compiled_lib1.tar")
+            self.fmod5 = tvm.runtime.load_module(self.case_path + "/compiled_lib5.tar")
         self.gmod1 = self.fmod1
         self.gmod5 = self.fmod5
         self.dnn = None
-    def handle_exit(self,flag,diff):
+
+    def handle_exit(self, flag, diff):
         exit()
-    def MRE(self, y_true, y_pred): # signal exposing numerical bugs
+
+    def MRE(self, y_true, y_pred):  # signal exposing numerical bugs
         flag = 0
-        aexception = np.isinf(y_true).any()==1 or np.isnan(y_true).any()==1
-        bexception = np.isinf(y_pred).any()==1 or np.isnan(y_pred).any()==1
-        if (aexception and not bexception) :
+        aexception = np.isinf(y_true).any() == 1 or np.isnan(y_true).any() == 1
+        bexception = np.isinf(y_pred).any() == 1 or np.isnan(y_pred).any() == 1
+        if aexception and not bexception:
             # flag = 3
             # print('y_true have inf\\nan:locating...')
             # self.locate_naninf('1')
-            return 0,0
+            return 0, 0
         elif not aexception and bexception:
             # print('y_pred have inf\\nan:locating...')
             # flag = 3
             # self.locate_naninf('5')
-            return 0,0
+            return 0, 0
         elif aexception and bexception:
             # flag = 10
             # print('y_true and y_pred have inf\\nan:locating...')
             # self.locate_naninf('1')
             # self.locate_naninf('5')
-            return 0,0
+            return 0, 0
         else:
             pass
         d = np.abs(y_true.astype(np.float64) - y_pred)
         if self.dnn is None:
-            relative_error = np.average( d \
-                    / (np.abs(y_true).astype(np.float64) + 1e-8) * np.not_equal(y_true, 0)\
-                        + np.equal(y_true, 0)* d )
+            relative_error = np.average(
+                d / (np.abs(y_true).astype(np.float64) + 1e-8) * np.not_equal(y_true, 0)
+                + np.equal(y_true, 0) * d
+            )
         else:
             l_true = np.argmax(y_true[0])
             l_pred = np.argmax(y_pred[0])
-            relative_error = np.average( d \
-                    / (np.abs(y_true).astype(np.float64) + 1e-8) * np.abs(y_true) / np.mean(np.abs(y_true)))
-        if  self.dnn is None and relative_error > 0.9 or self.dnn is not None and l_true!=l_pred:
-            print("[fuzzer]unacceptable relative error is:", relative_error)# y_true,y_pred
+            relative_error = np.average(
+                d
+                / (np.abs(y_true).astype(np.float64) + 1e-8)
+                * np.abs(y_true)
+                / np.mean(np.abs(y_true))
+            )
+        if (
+            self.dnn is None
+            and relative_error > 0.9
+            or self.dnn is not None
+            and l_true != l_pred
+        ):
+            print(
+                "[fuzzer]unacceptable relative error is:", relative_error
+            )  # y_true,y_pred
             flag = 1
-        return relative_error,flag
+        return relative_error, flag
 
-    def fuzzps(self, mod:IRModule=None,):
-        def fuzzfn(arr:np.array):# input:list of np factorymod1: tvm.runtime.Module,factorymod5: tvm.runtime.Module,
+    def fuzzps(
+        self,
+        mod: IRModule = None,
+    ):
+        def fuzzfn(
+            arr: np.array,
+        ):  # input:list of np factorymod1: tvm.runtime.Module,factorymod5: tvm.runtime.Module,
             inputarr = self.eparams
             inputarr[self.tempkey] = np.reshape(arr, self.Input_size)
             self.eparams = inputarr
             # inputarr = np.reshape(arr, self.Input_size)
-            outs1 = run_gmod(self.gmod1,inputarr)
-            outs5 = run_gmod(self.gmod5,inputarr)
+            outs1 = run_gmod(self.gmod1, inputarr)
+            outs5 = run_gmod(self.gmod5, inputarr)
             tempdiff = 0
             for i, (ro, o) in enumerate(zip(outs1, outs5)):
-                diff , flag =  self.MRE(ro,o)
-                if flag>0:
-                    self.handle_exit(flag,diff)
+                diff, flag = self.MRE(ro, o)
+                if flag > 0:
+                    self.handle_exit(flag, diff)
                 tempdiff = max(diff, tempdiff)
             return -tempdiff
-        #Input_size
-        path_params = os.path.join(self.case_path, 'oinputs.npz')
+
+        # Input_size
+        path_params = os.path.join(self.case_path, "oinputs.npz")
         with np.load(path_params) as f:
             loaded_params = dict(f.items())
         keyss = list(loaded_params.keys())
@@ -136,43 +181,47 @@ class Fuzzer:
         # initial weight
         diff = 0
 
-        if os.path.exists(os.path.join(self.case_path, 'params5.npz')):
-            with np.load(os.path.join(self.case_path, 'params5.npz')) as f:
-                self.params5  = dict(f.items())
-            path_params = os.path.join(self.case_path, 'inputs.npz')
+        if os.path.exists(os.path.join(self.case_path, "params5.npz")):
+            with np.load(os.path.join(self.case_path, "params5.npz")) as f:
+                self.params5 = dict(f.items())
+            path_params = os.path.join(self.case_path, "inputs.npz")
             with np.load(path_params) as f:
-                self.params  = dict(f.items())
+                self.params = dict(f.items())
                 self.eparams = self.params
         else:
-            path_params = os.path.join(self.case_path, 'oinputs.npz')
+            path_params = os.path.join(self.case_path, "oinputs.npz")
             with np.load(path_params) as f:
-                self.params  = dict(f.items())
+                self.params = dict(f.items())
                 self.eparams = self.params
         # begin
         for Input_size in Input_sizes:  # for each params
             self.Input_size = Input_size
             self.tempkey = keyss[0]
 
-            self.eparams= self.params
-            print('temp fuzzing params: ',self.tempkey,self.Input_size)
+            self.eparams = self.params
+            print("temp fuzzing params: ", self.tempkey, self.Input_size)
 
             for i in range(1):
-                lw =boundarr(self.Boundlow, inputsize=self.Input_size)
-                up =boundarr(self.Boundhigh, inputsize=self.Input_size)
+                lw = boundarr(self.Boundlow, inputsize=self.Input_size)
+                up = boundarr(self.Boundhigh, inputsize=self.Input_size)
                 bounds = list(zip(lw, up))
                 seeds = dict()
-                t0 =time.time()
+                t0 = time.time()
                 for i in range(speed1):
-                    print('another de finding')
-                    for retx, retf in simpleDE(fuzzfn, bounds=bounds,its=speed2,dtype=self.dtype):#15
-                        print('global minimum: x , f(x) = ',retx,-retf)
+                    print("another de finding")
+                    for retx, retf in simpleDE(
+                        fuzzfn, bounds=bounds, its=speed2, dtype=self.dtype
+                    ):  # 15
+                        print("global minimum: x , f(x) = ", retx, -retf)
                     retf = -retf
-                    seeds[str(retf)]= retx
-                seeds = dict(sorted(seeds.items(), key=lambda item: float(item[0]),reverse=True))
+                    seeds[str(retf)] = retx
+                seeds = dict(
+                    sorted(seeds.items(), key=lambda item: float(item[0]), reverse=True)
+                )
                 retf, retx = list(seeds.items())[0]
                 retf = float(retf)
                 t1 = time.time()
-                print(retf,'de using time',t1-t0)
+                print(retf, "de using time", t1 - t0)
                 bretf, bretx = list(seeds.items())[0]
                 bretf = float(bretf)
                 bseeds = list(seeds.values())
@@ -186,29 +235,44 @@ class Fuzzer:
                 #     continue
                 if self.dnn:
                     for i in range(speed3):
-                        print('another me finding')
-                        for retx, retf in genetic_algorithm(fuzzfn, x0 = bseeds, bounds=bounds,its=speed4,\
-                                                            n_pop=50, r_mut=1/16.0/len(bounds)*2,type= self.dtype):#15
-                            print('global minimum: x , f(x) = ',-retf)
+                        print("another me finding")
+                        for retx, retf in genetic_algorithm(
+                            fuzzfn,
+                            x0=bseeds,
+                            bounds=bounds,
+                            its=speed4,
+                            n_pop=50,
+                            r_mut=1 / 16.0 / len(bounds) * 2,
+                            type=self.dtype,
+                        ):  # 15
+                            print("global minimum: x , f(x) = ", -retf)
                         retf = -retf
-                        seeds[str(retf)]= retx
+                        seeds[str(retf)] = retx
                 else:
                     for i in range(speed3):
-                        print('another me finding')
-                        for retx, retf in genetic_algorithm(fuzzfn, x0 = bseeds, bounds=bounds,its=speed4,\
-                                                            r_mut=1/16.0/len(bounds)*2,type= self.dtype):#15
-                            print('global minimum: x , f(x) = ',retx,-retf)
+                        print("another me finding")
+                        for retx, retf in genetic_algorithm(
+                            fuzzfn,
+                            x0=bseeds,
+                            bounds=bounds,
+                            its=speed4,
+                            r_mut=1 / 16.0 / len(bounds) * 2,
+                            type=self.dtype,
+                        ):  # 15
+                            print("global minimum: x , f(x) = ", retx, -retf)
                         retf = -retf
-                        seeds[str(retf)]= retx
-                seeds = dict(sorted(seeds.items(), key=lambda item: float(item[0]),reverse=True))
+                        seeds[str(retf)] = retx
+                seeds = dict(
+                    sorted(seeds.items(), key=lambda item: float(item[0]), reverse=True)
+                )
                 retf, retx = list(seeds.items())[0]
                 retf = float(retf)
-                t2= time.time()
-                print(retf,'me using time',t2-t1)
+                t2 = time.time()
+                print(retf, "me using time", t2 - t1)
                 exit()
 
                 # mcmc fuzzing -------------------------------
-                '''
+                """
                 print('-'*50, ' mcmc ','\n')
                 retout={}
                 # def anneal
@@ -226,7 +290,7 @@ class Fuzzer:
                 if  bretf < retf2:
                     bretx = retx2
                     bretf = retf2
-                '''
+                """
 
                 # f: basin-hopping
                 # for mod in ['Powell','Nelder-Mead']:
@@ -278,6 +342,6 @@ class Fuzzer:
 
             else:
                 pass
-            with open(self.case_path+'/Fuzzstate','a') as fp:
-                fp.write('numerical error'+ str(bretf))
+            with open(self.case_path + "/Fuzzstate", "a") as fp:
+                fp.write("numerical error" + str(bretf))
         return

@@ -4,22 +4,36 @@ from multiprocessing import Manager, Process, Queue, Semaphore
 from queue import Empty
 from threading import Thread
 from time import sleep
-from typing import Callable, TypeVar, Optional, List, Iterable, Tuple, Generic, Any, Dict, \
-    NamedTuple, cast, Set
+from typing import (
+    Callable,
+    TypeVar,
+    Optional,
+    List,
+    Iterable,
+    Tuple,
+    Generic,
+    Any,
+    Dict,
+    NamedTuple,
+    cast,
+    Set,
+)
 
 from colorama import Fore
 
-T = TypeVar('T')
-R = TypeVar('R')
+T = TypeVar("T")
+R = TypeVar("R")
 
 
 # Types
+
 
 def cls_name(o) -> str:
     return o.__class__.__name__
 
 
 # Optional
+
 
 def map_opt(f: Callable[[T], R], o: Optional[T]) -> Optional[R]:
     return None if o is None else f(o)
@@ -40,6 +54,7 @@ def filter_none(lst: List[Optional[T]]) -> List[T]:
 
 # Dict
 
+
 def inc_cnt(cnt_map: Dict[T, int], key: T):
     if key in cnt_map:
         cnt_map[key] += 1
@@ -48,6 +63,7 @@ def inc_cnt(cnt_map: Dict[T, int], key: T):
 
 
 # Reference
+
 
 class Ref(Generic[T]):
     """
@@ -61,7 +77,7 @@ class Ref(Generic[T]):
     def get(self):
         return self.obj_
 
-    def __eq__(self, other: 'Ref[T]'):
+    def __eq__(self, other: "Ref[T]"):
         return self.obj_ is other.obj_
 
     def __hash__(self):
@@ -73,6 +89,7 @@ class Ref(Generic[T]):
 
 # Format
 
+
 def colored_text(txt: str, color: str):
     return color + txt + Fore.RESET
 
@@ -81,7 +98,8 @@ class CodeBuffer:
     """
     Efficient buffer for writing code with indentation.
     """
-    indent_str = '    '
+
+    indent_str = "    "
 
     def __init__(self):
         self._buf = StringIO()
@@ -92,11 +110,11 @@ class CodeBuffer:
         self._try_write_indent()
         self._buf.write(s)
 
-    def writeln(self, s: str = ''):
+    def writeln(self, s: str = ""):
         self._try_write_indent()
         if len(s) > 0:
             self.write(s)
-        self.write('\n')
+        self.write("\n")
         self._new_ln = True
 
     def __str__(self):
@@ -115,8 +133,13 @@ class CodeBuffer:
 
         return Indent(self)
 
-    def write_pos(self, items: Iterable[Callable[[], None]],
-                  sep: str = ', ', prefix: str = '(', suffix: str = ')'):
+    def write_pos(
+        self,
+        items: Iterable[Callable[[], None]],
+        sep: str = ", ",
+        prefix: str = "(",
+        suffix: str = ")",
+    ):
         self.write(prefix)
         for i, callback in enumerate(items):
             if i != 0:
@@ -124,8 +147,13 @@ class CodeBuffer:
             callback()
         self.write(suffix)
 
-    def write_pos_multi(self, items: Iterable[Callable[[], None]],
-                        sep: str = ',', prefix: str = '(', suffix: str = ')'):
+    def write_pos_multi(
+        self,
+        items: Iterable[Callable[[], None]],
+        sep: str = ",",
+        prefix: str = "(",
+        suffix: str = ")",
+    ):
         self.writeln(prefix)
         with self.indent():
             for i, callback in enumerate(items):
@@ -133,22 +161,32 @@ class CodeBuffer:
                 self.writeln(sep)
         self.write(suffix)
 
-    def write_named(self, items: Iterable[Tuple[str, Callable[[], None]]],
-                    sep: str = ', ', prefix: str = '(', suffix: str = ')'):
+    def write_named(
+        self,
+        items: Iterable[Tuple[str, Callable[[], None]]],
+        sep: str = ", ",
+        prefix: str = "(",
+        suffix: str = ")",
+    ):
         self.write(prefix)
         for i, (name, callback) in enumerate(items):
             if i != 0:
                 self.write(sep)
-            self.write(f'{name}=')
+            self.write(f"{name}=")
             callback()
         self.write(suffix)
 
-    def write_named_multi(self, items: Iterable[Tuple[str, Callable[[], None]]],
-                          sep: str = ',', prefix: str = '(', suffix: str = ')'):
+    def write_named_multi(
+        self,
+        items: Iterable[Tuple[str, Callable[[], None]]],
+        sep: str = ",",
+        prefix: str = "(",
+        suffix: str = ")",
+    ):
         self.writeln(prefix)
         with self.indent():
             for i, (name, callback) in enumerate(items):
-                self.write(f'{name}=')
+                self.write(f"{name}=")
                 callback()
                 self.writeln(sep)
         self.write(suffix)
@@ -183,6 +221,7 @@ class NameGenerator:
 
 
 # Multiprocessing
+
 
 class ProcessResult(NamedTuple):
     exitcode: int
@@ -231,8 +270,13 @@ def run_process(f: Callable[[Any], Dict[str, Any]], args: Tuple[Any, ...]):
     return ProcessResult(ps.exitcode, dict(ret), out_read.join(), err_read.join())
 
 
-def _ps_work(f: Callable[[Any], Dict[str, Any]], args: Tuple[Any, ...], ret: Dict[str, Any],
-             out: Queue, err: Queue):
+def _ps_work(
+    f: Callable[[Any], Dict[str, Any]],
+    args: Tuple[Any, ...],
+    ret: Dict[str, Any],
+    out: Queue,
+    err: Queue,
+):
     class QueueIO:
         def __init__(self, queue: Queue):
             self._q = queue

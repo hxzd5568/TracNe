@@ -9,6 +9,7 @@ class TypeKind(IntEnum):
     """
     Simple RTTI mechanism for `Type`.
     """
+
     bool = auto()
     int = auto()
     float = auto()
@@ -23,6 +24,7 @@ class Type:
     """
     Base class for all expression types.
     """
+
     kind: TypeKind
 
     scalar_kinds = [
@@ -38,10 +40,10 @@ class Type:
         return self.kind in self.scalar_kinds
 
     @property
-    def elem_type(self) -> Optional['Type']:
+    def elem_type(self) -> Optional["Type"]:
         return None
 
-    def __eq__(self, other: 'Type'):
+    def __eq__(self, other: "Type"):
         """
         Compare structural equality of two types.
         """
@@ -58,6 +60,7 @@ class BoolType(Type):
     """
     Boolean type.
     """
+
     kind = TypeKind.bool
 
 
@@ -65,6 +68,7 @@ class IntType(Type):
     """
     Integer type.
     """
+
     kind = TypeKind.int
 
 
@@ -72,6 +76,7 @@ class FloatType(Type):
     """
     Float type.
     """
+
     kind = TypeKind.float
 
 
@@ -79,6 +84,7 @@ class StrType(Type):
     """
     String type.
     """
+
     kind = TypeKind.str
 
 
@@ -86,6 +92,7 @@ class DType(Type):
     """
     Type for tensor data type.
     """
+
     kind = TypeKind.dtype
 
 
@@ -113,11 +120,9 @@ class DataType:
         for code in TypeCode:
             if s.find(code.name) != 0:
                 continue
-            bits = int(s[len(code.name):])
+            bits = int(s[len(code.name) :])
             return DataType(TypeCode(code.value), bits)
-        raise ValueError(
-            f'Cannot create DataType from \'{s}\''
-        )
+        raise ValueError(f"Cannot create DataType from '{s}'")
 
     @classmethod
     def i(cls, bits: int):
@@ -139,7 +144,7 @@ class DataType:
     def bf(cls, bits: int):
         return DataType(TypeCode.bfloat, bits)
 
-    def __eq__(self, other: 'DataType'):
+    def __eq__(self, other: "DataType"):
         return self.code_ == other.code_ and self.bits_ == other.bits_
 
     def __hash__(self):
@@ -151,14 +156,24 @@ class DataType:
 
 common_dtypes = [
     # DataType.b(),
-    DataType.i(8), DataType.i(16), DataType.i(32), DataType.i(64),
-    DataType.u(8), DataType.u(16), DataType.u(32), DataType.u(64),
-    DataType.f(16), DataType.f(32), DataType.f(64),
+    DataType.i(8),
+    DataType.i(16),
+    DataType.i(32),
+    DataType.i(64),
+    DataType.u(8),
+    DataType.u(16),
+    DataType.u(32),
+    DataType.u(64),
+    DataType.f(16),
+    DataType.f(32),
+    DataType.f(64),
     # DataType.bf(16),  # bfloat16 compilation failed in Relay backend
 ]
 
 float_dtypes = [
-    DataType.f(16), DataType.f(32), DataType.f(64),
+    DataType.f(16),
+    DataType.f(32),
+    DataType.f(64),
 ]
 
 
@@ -167,6 +182,7 @@ class TupleType(Type):
     Type for fixed-length array of possibly heterogeneous elements. A homogeneous tuple type can
     be cast to a list type.
     """
+
     kind = TypeKind.tuple
 
     def __init__(self, *field_ty: Type):
@@ -177,7 +193,8 @@ class TupleType(Type):
         if other.kind == TypeKind.list:
             other = cast(ListType, other)
             return self.is_homo_ and (
-                    len(self.field_ty_) == 0 or self.field_ty_[0] == other.elem_ty_)
+                len(self.field_ty_) == 0 or self.field_ty_[0] == other.elem_ty_
+            )
         elif self.kind != other.kind:
             return False
         other = cast(TupleType, other)
@@ -191,7 +208,7 @@ class TupleType(Type):
         return all(map(lambda ty: ty == self.field_ty_[0], self.field_ty_[1:]))
 
     @property
-    def elem_type(self) -> Optional['Type']:
+    def elem_type(self) -> Optional["Type"]:
         if (not self.is_homo_) or (len(self.field_ty_) == 0):
             return None
         else:
@@ -199,24 +216,25 @@ class TupleType(Type):
 
     def __str__(self):
         if len(self.field_ty_) == 0:
-            return '()'
+            return "()"
         if len(self.field_ty_) == 1:
-            return '({},)'.format(str(self.field_ty_[0]))
+            return "({},)".format(str(self.field_ty_[0]))
         else:
-            return '({})'.format(', '.join(map(lambda f: str(f), self.field_ty_)))
+            return "({})".format(", ".join(map(lambda f: str(f), self.field_ty_)))
 
 
 class ListType(Type):
     """
     Type for variable-length array of homogeneous elements.
     """
+
     kind = TypeKind.list
 
     def __init__(self, elem_ty: Type):
         self.elem_ty_ = elem_ty
 
     @property
-    def elem_type(self) -> Optional['Type']:
+    def elem_type(self) -> Optional["Type"]:
         return self.elem_ty_
 
     def __eq__(self, other: Type):
@@ -228,7 +246,7 @@ class ListType(Type):
         return self.elem_ty_ == other.elem_ty_
 
     def __str__(self):
-        return f'[{self.elem_ty_}]'
+        return f"[{self.elem_ty_}]"
 
 
 ValueType = Union[bool, int, float, str, tuple, list, DataType]
@@ -254,20 +272,18 @@ def type_py_value(v: ValueType) -> Type:
     if py_ty in _type_funcs:
         return _type_funcs[py_ty](v)
     else:
-        raise TypeError(
-            'Cannot type Python object of type {}'.format(
-                util.cls_name(v))
-        )
+        raise TypeError("Cannot type Python object of type {}".format(util.cls_name(v)))
 
 
 class TyVar(Type):
     """
     Type variable. This type is just for type inference and should not appear in user code.
     """
+
     kind = TypeKind.var
 
     def __str__(self):
-        return '?'
+        return "?"
 
     def __eq__(self, other):
         return self is other

@@ -15,13 +15,17 @@ args = Namespace()
 def parse_args():
     global args
     p = ArgumentParser()
-    p.add_argument('-n', '--number', type=int, help='Number of graphs to generate.')
-    p.add_argument('-s', '--seed', type=int, default=42, help='Random seed of graph generator.')
-    p.add_argument('-v', '--visualize', action='store_true', help='Visualize generated graphs.')
+    p.add_argument("-n", "--number", type=int, help="Number of graphs to generate.")
+    p.add_argument(
+        "-s", "--seed", type=int, default=42, help="Random seed of graph generator."
+    )
+    p.add_argument(
+        "-v", "--visualize", action="store_true", help="Visualize generated graphs."
+    )
     args = p.parse_args()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parse_args()
     TypeSpec.for_graph = True
     rng = Generator(PCG64(seed=args.seed))
@@ -31,4 +35,4 @@ if __name__ == '__main__':
         src = print_relay(graph)
         parser.parse(src)
         if args.visualize:
-            visualize(graph, f'graph_{idx}', 'out')
+            visualize(graph, f"graph_{idx}", "out")

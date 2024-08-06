@@ -4,19 +4,28 @@ import numpy as np
 from tvm import relay, tir, runtime, ir
 from tvm.ir import IRModule
 
-from .base import GraphVisitor, Value, Graph, VertexKind, Input, Output, Operation, TensorType
+from .base import (
+    GraphVisitor,
+    Value,
+    Graph,
+    VertexKind,
+    Input,
+    Output,
+    Operation,
+    TensorType,
+)
 from ..expr.ty import ValueType, DataType
 from ..spec import OpRegistry
 from ..util import NameGenerator, CodeBuffer
 
 # Operators that accept tuple as input
 tuple_in_ops = {
-    'concatenate',
+    "concatenate",
 }
 
 # Operators that return a tuple, no matter how many output values they produce
 tuple_out_ops = {
-    'split',
+    "split",
 }
 
 
@@ -28,11 +37,11 @@ def fmt_val(v: ValueType):
     if isinstance(v, (bool, int, DataType)):
         return str(v)
     elif isinstance(v, float):
-        return str(v) + 'f'
+        return str(v) + "f"
     elif isinstance(v, str):
         return '"' + v + '"'
     elif isinstance(v, (tuple, list)):
-        return '[' + ', '.join(fmt_val(e) for e in v) + ']'
+        return "[" + ", ".join(fmt_val(e) for e in v) + "]"
     elif v is None:
         return fmt_val([])
     else:
@@ -44,30 +53,36 @@ class RelayPrinter(GraphVisitor[None]):
         super().__init__()
         self._buf = CodeBuffer()
         self._val_names: Dict[Value, str] = {}
-        self._arg_gen = NameGenerator('%x')
-        self._res_gen = NameGenerator('%')
+        self._arg_gen = NameGenerator("%x")
+        self._res_gen = NameGenerator("%")
 
     def print(self, g: Graph):
         # Function signature
         self._buf.writeln('#[version = "0.0.5"]')
-        self._buf.write('def @main')
+        self._buf.write("def @main")
         self._buf.write_pos(
-            map(lambda i: lambda: self._buf.write(
-                f'{self.visit_value(i.value_)}: {i.value_.type_}'), g.inputs_)
+            map(
+                lambda i: lambda: self._buf.write(
+                    f"{self.visit_value(i.value_)}: {i.value_.type_}"
+                ),
+                g.inputs_,
+            )
         )
-        self._buf.write(' -> ')
+        self._buf.write(" -> ")
         self._buf.write_pos(
             map(lambda o: lambda: self._buf.write(str(o.value_.type_)), g.outputs_)
         )
 
         # Function body
-        self._buf.writeln(' {')
+        self._buf.writeln(" {")
         with self._buf.indent():
             for out in g.outputs_:
                 self.visit(out)
-            out_str = str(tuple(self.visit_value(o.value_) for o in g.outputs_)).replace('\'', '')
+            out_str = str(
+                tuple(self.visit_value(o.value_) for o in g.outputs_)
+            ).replace("'", "")
             self._buf.writeln(out_str)
-        self._buf.writeln('}')
+        self._buf.writeln("}")
 
         return str(self._buf)
 
@@ -89,32 +104,41 @@ class RelayPrinter(GraphVisitor[None]):
             tup_name = self._res_gen.generate()
             self._buf.write(tup_name)
         else:
-            tup_name = ''
+            tup_name = ""
             self._buf.write(self.visit_value(opr.outputs_[0]))
-        self._buf.write(' = ')
+        self._buf.write(" = ")
 
         # Print operator call
         self._buf.write(opr.op_.name_)
         args = map(lambda v: self.visit_value(v), opr.inputs_)
         if op_name in tuple_in_ops:
-            arg_str = str(tuple(args)).replace('\'', '')
+            arg_str = str(tuple(args)).replace("'", "")
         else:
-            arg_str = ', '.join(args)
-        self._buf.write_pos([
-            lambda: self._buf.write(arg_str),
-            lambda: self._buf.write_named(
-                map(lambda a: (a[0], lambda: self._buf.write(fmt_val(a[1]))), opr.attrs_),
-                prefix='', suffix=''
-            )
-        ])
-        ty_str = repr(tuple(out.type_ for out in opr.outputs_)) if tup_out else repr(
-            opr.outputs_[0].type_)
-        self._buf.writeln(f'; /* ty={ty_str} */')
+            arg_str = ", ".join(args)
+        self._buf.write_pos(
+            [
+                lambda: self._buf.write(arg_str),
+                lambda: self._buf.write_named(
+                    map(
+                        lambda a: (a[0], lambda: self._buf.write(fmt_val(a[1]))),
+                        opr.attrs_,
+                    ),
+                    prefix="",
+                    suffix="",
+                ),
+            ]
+        )
+        ty_str = (
+            repr(tuple(out.type_ for out in opr.outputs_))
+            if tup_out
+            else repr(opr.outputs_[0].type_)
+        )
+        self._buf.writeln(f"; /* ty={ty_str} */")
 
         # Unpack tuple
         if tup_out:
             for i, v in enumerate(opr.outputs_):
-                self._buf.writeln(f'{self.visit_value(v)} = {tup_name}.{i};')
+                self._buf.writeln(f"{self.visit_value(v)} = {tup_name}.{i};")
 
     def visit_value(self, v: Value):
         if v in self._val_names:
@@ -128,7 +152,7 @@ class RelayPrinter(GraphVisitor[None]):
 
 
 def build_graph(mod: IRModule, params: Dict[str, np.ndarray]):
-    return GraphBuilder(params).visit(mod['main'])
+    return GraphBuilder(params).visit(mod["main"])
 
 
 class GraphBuilder(relay.ExprFunctor):
@@ -141,9 +165,13 @@ class GraphBuilder(relay.ExprFunctor):
 
     def visit_function(self, fn: relay.Function):
         # Create inputs
-        self._inputs = [Input(_cvt_type(var.checked_type), var.name_hint in self._params)
-                        for var in fn.params]
-        self._name2val = {p.name_hint: inp.value_ for p, inp in zip(fn.params, self._inputs)}
+        self._inputs = [
+            Input(_cvt_type(var.checked_type), var.name_hint in self._params)
+            for var in fn.params
+        ]
+        self._name2val = {
+            p.name_hint: inp.value_ for p, inp in zip(fn.params, self._inputs)
+        }
 
         # Build operations
         if isinstance(fn.body, (relay.Call, relay.TupleGetItem, relay.Var)):
@@ -151,7 +179,7 @@ class GraphBuilder(relay.ExprFunctor):
         elif isinstance(fn.body, relay.Tuple):
             outputs = [Output(self.visit(f)) for f in fn.body.fields]
         else:
-            raise TypeError('{} not supported.'.format(type(fn.body).__name__))
+            raise TypeError("{} not supported.".format(type(fn.body).__name__))
 
         # Create graph
         return Graph(self._inputs, outputs, self._oprs)
@@ -180,7 +208,7 @@ class GraphBuilder(relay.ExprFunctor):
             inputs = [self.visit(a) for a in call.args]
 
         # Convert attribute values
-        if call.attrs is None or (not hasattr(call.attrs, 'keys')):
+        if call.attrs is None or (not hasattr(call.attrs, "keys")):
             attrs = []
         else:
             attrs = [(str(k), _cvt_ir_value(call.attrs[k])) for k in call.attrs.keys()]
@@ -192,7 +220,7 @@ class GraphBuilder(relay.ExprFunctor):
         elif isinstance(out_ty, relay.TupleType):
             outputs = [Value(_cvt_type(f)) for f in out_ty.fields]
         else:
-            raise TypeError('{} not supported.'.format(type(out_ty).__name__))
+            raise TypeError("{} not supported.".format(type(out_ty).__name__))
 
         # Create operation
         opr = Operation(OpRegistry.get(name), attrs, inputs, outputs)

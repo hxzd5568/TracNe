@@ -1,5 +1,5 @@
 import tvm
-from tvm import relay,runtime
+from tvm import relay, runtime
 import os
 import numpy as np
 import queue
@@ -13,7 +13,7 @@ from argparse import Namespace, ArgumentParser
 from typing import Iterable, List, cast, Optional, Dict
 import sys
 
-sys.path.append('..')
+sys.path.append("..")
 from src.base_utils import Checkor
 from src.fuzzer import Fuzzer
 from multiprocessing import Process
@@ -28,7 +28,7 @@ import psutil
 #     return info.uss / 1024. / 1024. / 1024.
 
 case_path = os.getcwd()
-case_id = os.path.basename(__file__).strip('.py')
+case_id = os.path.basename(__file__).strip(".py")
 # args = sys.argv
 # if '-' in args[1]:
 #     l,r = int(args[1].split('-')[0]),\
@@ -44,32 +44,39 @@ configargs = Namespace()
 def _parse_args():
     global configargs
     p = ArgumentParser()
-    p.add_argument('caseids', metavar='N', type=str, nargs='+',
-                    help='model ids')
-    p.add_argument( '--low', type=float, default=-5.)
-    p.add_argument( '--high', type=float, default=5.)
-    p.add_argument( '--method', type=str, default='MEGA',choices=['DEMC', 'MCMC','MEGA'])
-    p.add_argument('--optlevel', type=int,  default=5)
-    p.add_argument('--granularity', type=int,  default=64)
+    p.add_argument("caseids", metavar="N", type=str, nargs="+", help="model ids")
+    p.add_argument("--low", type=float, default=-5.0)
+    p.add_argument("--high", type=float, default=5.0)
+    p.add_argument(
+        "--method", type=str, default="MEGA", choices=["DEMC", "MCMC", "MEGA"]
+    )
+    p.add_argument("--optlevel", type=int, default=5)
+    p.add_argument("--granularity", type=int, default=64)
     # p.add_argument( '--name', type=str, help='such as --name 1')
 
     configargs = p.parse_args()
+
+
 _parse_args()
 
 for caseid in configargs.caseids:
     if caseid.isdigit():
-        dump_path = case_path+'/out/'+caseid
+        dump_path = case_path + "/out/" + caseid
     else:
-        dump_path = case_path+'/dnn/out/'+caseid
-        case_path = case_path+'/dnn'
+        dump_path = case_path + "/dnn/out/" + caseid
+        case_path = case_path + "/dnn"
     print(dump_path)
-    fuzzer = Fuzzer(path =case_path,case_id=caseid,
-                    low= configargs.low,high= configargs.high,
-                    fuzzmode=configargs.method, fuzzframe=False,
-                    optlevel=configargs.optlevel,
-                    fuseopsmax=configargs.granularity,
-                    )
-    fuzzer.bigflag =1
+    fuzzer = Fuzzer(
+        path=case_path,
+        case_id=caseid,
+        low=configargs.low,
+        high=configargs.high,
+        fuzzmode=configargs.method,
+        fuzzframe=False,
+        optlevel=configargs.optlevel,
+        fuseopsmax=configargs.granularity,
+    )
+    fuzzer.bigflag = 1
     fuzzer.randweight = 1
     try:
         fuzzer.save_files()

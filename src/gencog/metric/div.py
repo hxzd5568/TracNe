@@ -62,8 +62,9 @@ class VertexDiversity(Diversity):
         self._ops = list(ops)
         self._specs: Dict[Op, TypeSpec] = {op: op.spec for op in self._ops}
         self._hash: Dict[Op, Set[int]] = {op: set() for op in self._ops}
-        self._space: Dict[Op, VertexSpace] = {op: _est_space(op, self._specs[op]) for op in
-                                              self._ops}
+        self._space: Dict[Op, VertexSpace] = {
+            op: _est_space(op, self._specs[op]) for op in self._ops
+        }
 
     def evaluate(self, graph: Graph):
         vis = OperationCollector(self)
@@ -75,8 +76,11 @@ class VertexDiversity(Diversity):
         op = opr.op_
         if op not in self._specs:
             return
-        shapes = tuple(tuple(v.type_.shape_) for i, v in enumerate(opr.inputs_)
-                       if i not in op.params_)
+        shapes = tuple(
+            tuple(v.type_.shape_)
+            for i, v in enumerate(opr.inputs_)
+            if i not in op.params_
+        )
         h = hash(shapes)
 
         # Hash attributes
@@ -125,7 +129,7 @@ class VertexSpace(NamedTuple):
 def _est_space(op: Op, spec: TypeSpec) -> VertexSpace:
     # Compute type space estimate for first input
     max_rank = max(spec.first_rank_choices)
-    in_space = (max_dim ** max_rank)
+    in_space = max_dim**max_rank
 
     # Double space if the operator accepts more than one non-parameter input
     multi_in = False
