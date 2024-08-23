@@ -38,7 +38,8 @@ TracNe is written in Python. Run `pip install -r requirements.txt` to get python
 * TVM should be built in debugging mode.
   * Download tvm code of version 0.12.dev0 at least.
   * In config.cmake set the USE_PROFILER flag to ON.
-  * [Build tvm from source](https://tvm.apache.org/docs/install/from_source.html#developers-get-source-from-github)
+  * [Build tvm from source](https://tvm.apache.org/docs/install/from_source.html#developers-get-source-from-github). To achieve all functions, one need to modify src/relay/backend/graph_executor_codegen.cc
+ file according to the [PR16882]https://github.com/apache/tvm/pull/16882/files.
 
 
 ## Preparing Models and Dataset
