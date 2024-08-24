@@ -37,22 +37,26 @@ import datetime
 case_path = os.getcwd()
 case_id = os.path.basename(__file__).strip(".py")
 args = sys.argv
+configargs = Namespace()
 
-if re.findall("torch", args[1]):
-    model_name = [
-        "transformer0",
-    ]  #'resnet50','vgg11','vgg13','vgg16','inceptionv3','dpn68
-    # 'resnet18','resnet34'
-    for model in model_name:
-        cmd = ["python", "test_torchutils.py", model]
-        try:  #!! pack them
-            rcode = run(cmd, timeout=60 * 80)
-        except CalledProcessError:
-            print(f"Error detected in initial check of case {model}.")
-            keep_dir = True
-        except TimeoutExpired:
-            print(f"Case {model} timed out.")
-    exit()
+
+def _parse_args():
+    global configargs
+    p = ArgumentParser()
+    p.add_argument("caseids", metavar="N", type=str, nargs="+", help="model ids")
+    p.add_argument("--low", type=float, default=-5.0)
+    p.add_argument("--high", type=float, default=5.0)
+    p.add_argument(
+        "--method", type=str, default="MEGA", choices=["DEMC", "MCMC", "MEGA"]
+    )
+    p.add_argument("--optlevel", type=int, default=5)
+    p.add_argument("--granularity", type=int, default=64)
+    # p.add_argument( '--name', type=str, help='such as --name 1')
+
+    configargs = p.parse_args()
+
+
+_parse_args()
 if "-" in args[1]:
     l, r = int(args[1].split("-")[0]), int(args[1].split("-")[1]) + 1
     caseids = [str(i) for i in range(l, r, 1)]
@@ -70,15 +74,16 @@ for caseid in caseids:
     else:
         dump_path = case_path + "/dnn/out/" + caseid
     print(dump_path)
-    # if os.path.exists(dump_path+'/compiled_lib1.tar'):
-    #     os.remove(dump_path+'/compiled_lib1.tar')
     for file in [
-        "test_fuzzer.py",
+        "test_fuzztorch.py",
         "test_replay.py",
         "test_traceerror.py",
         "test_prop.py",
-    ]:  # 'test_fuzzer.py','test_replay.py', 'test_traceerror.py', 'test_fix.py', 'test_prop.py', 'test_pliner.py'
-        cmd = ["python", file, caseid]
+    ]:  # 'test_fuzztorch.py','test_replay.py', 'test_traceerror.py', 'test_fix.py', 'test_prop.py', 'test_pliner.py'
+        if file == "test_fuzztorch.py":
+            cmd = ["python", file, caseid, "--method", configargs.method]
+        else:
+            cmd = ["python", file, caseid]
         try:  #!! pack them
             rcode = run(cmd, timeout=180 * 4 + 30)
         except CalledProcessError:

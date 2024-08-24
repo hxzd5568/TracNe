@@ -9,11 +9,6 @@ from tvm import relay
 from argparse import Namespace, ArgumentParser
 import os
 
-args = sys.argv
-# for id in range(20,31,1):
-#     fuzzer = Fuzzer(path =case_path,case_id=str(id),fuzzmode='DEMC2')
-#     fuzzer.replay_withdebugger()
-#     del fuzzer
 case_path = "./"
 args = sys.argv
 configargs = Namespace()

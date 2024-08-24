@@ -30,7 +30,6 @@ from tvm.contrib import cudnn, utils
 import torch
 from torch.nn import Module
 from torch.nn import functional as F
-import torchvision
 
 case_path = ""
 TensorDict = Dict[str, np.ndarray]

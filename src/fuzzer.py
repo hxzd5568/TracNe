@@ -30,7 +30,7 @@ TensorDict = Dict[str, np.ndarray]
 target = tvm.target.Target("llvm", host="llvm")
 layout = None
 dev = tvm.cpu(0)
-speed1, speed2, speed3, speed4 = 2, 10, 2, 6  # 5, 24, 2, 16 for traditional programs
+speed1, speed2, speed3, speed4 = 5, 24, 2, 16  # 5, 24, 2, 16 for traditional programs
 mcmcstorepoint = 0
 Disabled_pass5 = [
     "SimplifyExpr"
@@ -569,7 +569,6 @@ class Fuzzer(Checkor):
                 self.diff = lastdiff
                 inputarr = None
             elif self.fuzzmode == "MCMC":
-                # print('358')
                 t0 = time.time()
                 a = 1
                 for i in self.Input_size:

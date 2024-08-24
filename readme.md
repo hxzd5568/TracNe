@@ -1,5 +1,5 @@
 # TracNe
-
+[Artifact]()
 ## Introduction
 
 To diagnose compiler-introduced numerical errors in NN models, we introduce an automated approach TracNe, which consists of two tasks: detecting and tracing DLC-related numerical errors in a given NN model, a valid input range and specific compilation options. The results on two benchmarks show that TracNe is helpful in locating erroneous code and passes for both DL compiler users and developers. It can serve as a unit test for ensuring the model's robustness.
@@ -38,8 +38,8 @@ TracNe is written in Python. Run `pip install -r requirements.txt` to get python
 * TVM should be built in debugging mode.
   * Download tvm code of version 0.12.dev0 at least.
   * In config.cmake set the USE_PROFILER flag to ON.
-  * [Build tvm from source](https://tvm.apache.org/docs/install/from_source.html#developers-get-source-from-github). To achieve all functions, one need to modify src/relay/backend/graph_executor_codegen.cc
- file according to the [PR16882]https://github.com/apache/tvm/pull/16882/files.
+  * [Build tvm from source](https://tvm.apache.org/docs/install/from_source.html#developers-get-source-from-github). To achieve all functions, you needs to modify src/relay/backend/graph_executor_codegen.cc
+ file according to the [PR16882]https://github.com/apache/tvm/pull/16882/files before build.
 
 
 ## Preparing Models and Dataset
@@ -77,7 +77,7 @@ python test_traceerror.py  model_dir
 It matches corresponding functions between symbolic optimized and up-optimized models and compares the results of each equivalent and paired function. The matching and comparison information are saved in the model_dir/trace.json.
 
 ```shell
-python test_propainfo.py  model_dir
+python test_propa.py  model_dir
 ```
 
 It backtracks the error-accumulation changes along the calculation graph. For each discrepancy output, it generates an error-accumulation graph from which the generation and amplification of the errors can be clearly understood. If an error arises in function A, then developers can know how A are optimized and transformed when compilation from trace.json.
@@ -103,7 +103,7 @@ We have provided comparison methods to evaluate the performance and efficiency o
 
 
 ```shell
-python relay_fuzzer.py model_dir --method MCMC/DEMC/MEGA
+python test_fuzzer.py model_dir --method MCMC/DEMC/MEGA
 ```
 
 MEGA is our detection algorithm, which MCMC is from [Yu et al.](https://ieeexplore.ieee.org/document/10123640/) and DEMC is devised by [Yi et al.](https://doi.org/10.1145/3290369)

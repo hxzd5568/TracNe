@@ -46,7 +46,6 @@ from onnx import TensorProto, helper, mapping, numpy_helper
 from onnxruntime.quantization import CalibrationDataReader, quantize_static
 
 import torch
-import torchvision
 from torch.nn import Linear, Module, Sequential
 
 

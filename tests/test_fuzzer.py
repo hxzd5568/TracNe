@@ -20,24 +20,8 @@ from multiprocessing import Process
 from src.traceerror import Trace_error
 import psutil
 
-# def get_current_memory_gb() -> int:
-#     # 获取当前进程内存占用。
-#     pid = os.getpid()
-#     p = psutil.Process(pid)
-#     info = p.memory_full_info()
-#     return info.uss / 1024. / 1024. / 1024.
-
 case_path = os.getcwd()
-case_id = os.path.basename(__file__).strip(".py")
-# args = sys.argv
-# if '-' in args[1]:
-#     l,r = int(args[1].split('-')[0]),\
-#             int(args[1].split('-')[1])+1
-#     caseids = [str(i) for i in range(l,r,1)]
-# elif ',' in args[1]:
-#     caseids = args[1].split(',')
-# else:
-#     caseids = [args[1]]
+args = sys.argv
 configargs = Namespace()
 
 
@@ -59,7 +43,22 @@ def _parse_args():
 
 _parse_args()
 
-for caseid in configargs.caseids:
+if "/" in args[1]:
+    dump_path = args[1]
+    case_path = dump_path.split("out")[0]
+    caseid = dump_path.split("out")[1][1:]
+    caseids = [caseid]
+elif "-" in args[1]:
+    l, r = int(args[1].split("-")[0]), int(args[1].split("-")[1]) + 1
+    caseids = [str(i) for i in range(l, r, 1)]
+elif "," in args[1]:
+    caseids = args[1].split(",")
+else:
+    caseids = args[1:]
+import time
+
+t0 = time.time()
+for caseid in caseids:
     if caseid.isdigit():
         dump_path = case_path + "/out/" + caseid
     else:
@@ -89,18 +88,3 @@ for caseid in configargs.caseids:
     except Exception as e:
         print(e.__class__.__name__, e)
     del fuzzer
-
-    # trace_error = Trace_error(dump_path)
-    # # trace_error.get_trace_message()
-    # try:
-    #     trace_error.get_node_name()
-    # except Exception as e:
-    #     print(e.__class__.__name__, e)
-    # del trace_error
-    # try:
-
-    #     continue
-    # except Exception as e:
-    #     print(e.__class__.__name__,':',e)
-    #     # print (traceback.format_exc ())
-    #     continue

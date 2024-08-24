@@ -20,20 +20,17 @@ from multiprocessing import Process
 from src.traceerror import Trace_error
 import psutil
 
-# def get_current_memory_gb() -> int:
-#     # 获取当前进程内存占用。
-#     pid = os.getpid()
-#     p = psutil.Process(pid)
-#     info = p.memory_full_info()
-#     return info.uss / 1024. / 1024. / 1024.
-
 configargs = Namespace()
+args = sys.argv
+case_path = os.getcwd() + "/dnn/"
 
 
 def _parse_args():
     global configargs
     p = ArgumentParser()
-    p.add_argument("caseids", metavar="N", type=str, nargs="+", help="model ids")
+    p.add_argument(
+        "caseids", metavar="model_dir_name", type=str, nargs="+", help="model ids"
+    )
     p.add_argument("--low", type=float, default=0.0)
     p.add_argument("--high", type=float, default=1.0)
     p.add_argument(
@@ -47,20 +44,7 @@ def _parse_args():
 
 _parse_args()
 
-args1 = configargs.caseids
-print(args1)
-if "/" in args1[0]:
-    dump_path = args1[0]
-    flag = 1
-    case_path = dump_path.split("out")[0]
-    caseid = dump_path.split("out")[1][1:]
-    caseids = [caseid]
-else:
-    print('Wrong input path. A valid path is "./dnn/out/inceptionv3". ')
-
-
-for caseid in caseids:
-    print(dump_path)
+for caseid in configargs.caseids:
     fuzzer = Fuzzer(
         path=case_path,
         case_id=caseid,
@@ -71,17 +55,7 @@ for caseid in caseids:
         optlevel=configargs.optlevel,
         fuseopsmax=configargs.granularity,
     )
-    # fuzzer.replay_error()
-    # for i in range(3):
-    # fuzzer.fastv()
-    # fuzzer.save_files()
-    # fuzzer.replay_error_yolov8()
-    # exit()
     fuzzer.bigflag = 1
-    # fuzzer.profile_nlp()
-    # exit()
-    # fuzzer.fastv()
-    # fuzzer.fuzzps()
 
     pfuzzer = Process(target=fuzzer.fuzzps)
     try:
