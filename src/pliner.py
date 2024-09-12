@@ -129,13 +129,11 @@ class Pliner:
                 fp.write(self.logging)
             return
         m = int((j+i)/2) #,668, 790,685
-        # int((j+i)/3*2)
         print("now detect at: ", m)
         mod2 = isolate(self.mod, m)
         lib1, lib5 = build_workload(mod2, params=self.inputarr)
         error = run_diff(lib1, lib5, self.inputarr)
         print("error", error)
-        exit(0)
         if error > 1e-9:
             self.logging += (
                 f"error between {i} and {m}. The error after {m} is {error}\n"
