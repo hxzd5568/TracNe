@@ -128,7 +128,7 @@ class Pliner:
             with open(self.filename, "w") as fp:
                 fp.write(self.logging)
             return
-        m = 789  # int((j+i)/2),668, 790,685
+        m = int((j+i)/2) #,668, 790,685
         # int((j+i)/3*2)
         print("now detect at: ", m)
         mod2 = isolate(self.mod, m)
