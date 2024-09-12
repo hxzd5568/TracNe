@@ -1,0 +1,18 @@
+yolov8-segmentation-s|
+totalnums |979
+valid samples|632
+incorrect rate|16.772%
+no detection rate|25.791%
+short detection rate|19.778%
+mean locerrors |287.629%
+mean size error|5.670%
+frame|76.850%
+opt|5.725%
+all|77.648%
+
+
+obertas-question-answer|
+opt|0.645%
+frame|0.278%
+all|0.711%
+top10 incorrect rate|50.000%

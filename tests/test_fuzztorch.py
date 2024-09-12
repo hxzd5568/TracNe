@@ -56,7 +56,8 @@ for caseid in configargs.caseids:
         fuseopsmax=configargs.granularity,
     )
     fuzzer.bigflag = 1
-
+    # fuzzer.profile_nlp()
+    # fuzzer.profile_error()
     pfuzzer = Process(target=fuzzer.fuzzps)
     try:
         pfuzzer.start()
@@ -81,5 +82,5 @@ for caseid in configargs.caseids:
     #     continue
     # except Exception as e:
     #     print(e.__class__.__name__,':',e)
-    #     # print (traceback.format_exc ())
+    #     # print (traceback.format_exc())
     #     continue

@@ -1,0 +1,25 @@
+﻿levels,fname,error
+translation level,Cos1,3.40E-09
+translation level,Cosh1,2.03E-08
+translation level,Sin1,3.57E-09
+translation level,Sinh1,4.44E-07
+translation level,Log2_1,5.28E-10
+translation level,Log10_1,1.40E-08
+translation level,Log1p_1,1.37E-08
+translation level,Exp1,7.81E-08
+translation level,Erf1,1.49E-08
+op-definition level,batch norm,2.22E-08
+op-definition level,batch norm,2.24E-07
+op-definition level,batch norm,3.24E-05
+graph level," x + c1 + c2,",2.54E-04
+graph level,"(x + c1) * c2,",1.91E-05
+graph level,"c3 * (x * c1 ),",6.27E-08
+graph level,test_fold_fwd_dense,2.20E-02
+graph level,test_fold_bwd_simple,2.05E-05
+graph level,test_fold_bwd_bias_add,8.72E-03
+graph level,test_fold_fwd_simple,2.32E-03
+graph level,fwd conv3d,8.52E-04
+graph level,bwd conv3d,6.91E-04
+TIR level,reduce_sum,0.001111091
+TIR level,reduce_sum,0.0001211091
+TIR level,reduce_sum,0.01711091
