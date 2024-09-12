@@ -111,7 +111,7 @@ MEGA is our detection algorithm, which MCMC is from [Yu et al.](https://ieeexplo
 ### Error localization algorithm
 
 ```shell
-python reduce_error.py model_dir
+python test_pliner.py model_dir
 ```
 
 This method is implemented following [Guo et al.](https://ieeexplore.ieee.org/document/9355325)
