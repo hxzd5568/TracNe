@@ -1,5 +1,5 @@
 # TracNe
-[Artifact](https://zenodo.org/records/13369488)
+[Artifact](https://zenodo.org/records/13754052)
 ## Introduction
 
 To diagnose compiler-introduced numerical errors in NN models, we introduce an automated approach TracNe, which consists of two tasks: detecting and tracing DLC-related numerical errors in a given NN model, a valid input range and specific compilation options. The results on two benchmarks show that TracNe is helpful in locating erroneous code and passes for both DL compiler users and developers. It can serve as a unit test for ensuring the model's robustness.
@@ -30,7 +30,7 @@ To diagnose compiler-introduced numerical errors in NN models, we introduce an a
   * [`dnn`](tests/dnn): Handbook and recommended workspace for industrial models.
 * [`bug`](bug): [Bug list](bug/pr02.py), TVM bug reports;
 
-## Dependency
+## Dependency (Can be skipped if you use the docker in the artifact)
 
 ###  Python enviroment
 TracNe is written in Python. Run `pip install -r requirements.txt` to get python dependencies.
